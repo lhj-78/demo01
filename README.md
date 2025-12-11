@@ -10,9 +10,9 @@
 
 ## 运行步骤
 1. 克隆仓库：`git clone https://github.com/HLW-bit/main.git`
-2. 进入项目目录：`cd student-management-system`
+2. 进入项目目录：`cd /d/PBL/node/main`
 3. 安装依赖：`pip install -r requirements.txt`
-4. 运行程序：`python src/main.py`
+4. 运行程序：`python src/app.py`
 
 ## 测试
 运行单元测试：`pytest`
