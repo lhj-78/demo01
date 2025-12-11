@@ -1,0 +1,118 @@
+
+{% extends "base.html" %}
+
+{% block title %}用户控制台 - 学生信息管理系统{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">用户控制台</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">个人信息</h5>
+            </div>
+            <div class="card-body">
+                {% if student %}
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th scope="row">学号</th>
+                            <td>{{ student.student_id }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">姓名</th>
+                            <td>{{ student.name }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">性别</th>
+                            <td>{{ student.gender or '未填写' }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">出生日期</th>
+                            <td>{{ student.birth_date.strftime('%Y-%m-%d') if student.birth_date else '未填写' }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">电话</th>
+                            <td>{{ student.phone or '未填写' }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">地址</th>
+                            <td>{{ student.address or '未填写' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                {% else %}
+                <p>您还没有完善个人信息，请点击下方按钮完善信息。</p>
+                {% endif %}
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('profile') }}" class="btn btn-primary">
+                        <i class="bi bi-pencil-square"></i> {% if student %}编辑{% else %}完善{% endif %}个人信息
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">我的课表</h5>
+            </div>
+            <div class="card-body">
+                <p>查看您的课程表，了解上课时间和地点。</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('schedule') }}" class="btn btn-success">
+                        <i class="bi bi-calendar-week"></i> 查看我的课表
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">我的成绩</h5>
+            </div>
+            <div class="card-body">
+                <p>查看您的课程成绩信息，包括各科成绩和绩点。</p>
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('my_grades') }}" class="btn btn-info">
+                        <i class="bi bi-journal-text"></i> 查看我的成绩
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">账户信息</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th scope="row">用户名</th>
+                            <td>{{ current_user.username }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">电子邮箱</th>
+                            <td>{{ current_user.email }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">账户类型</th>
+                            <td>普通用户</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">注册时间</th>
+                            <td>{{ current_user.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

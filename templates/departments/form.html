@@ -1,0 +1,80 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - 学生信息管理系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.dept_code.label(class="form-label") }}
+                        {{ form.dept_code(class="form-control") }}
+                        {% if form.dept_code.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.dept_code.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.dept_name.label(class="form-label") }}
+                        {{ form.dept_name(class="form-control") }}
+                        {% if form.dept_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.dept_name.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.dean.label(class="form-label") }}
+                        {{ form.dean(class="form-control") }}
+                        {% if form.dean.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.dean.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.office_location.label(class="form-label") }}
+                        {{ form.office_location(class="form-control") }}
+                        {% if form.office_location.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.office_location.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.phone.label(class="form-label") }}
+                        {{ form.phone(class="form-control") }}
+                        {% if form.phone.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.phone.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('list_departments') }}" class="btn btn-outline-secondary">返回列表</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
