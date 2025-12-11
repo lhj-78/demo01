@@ -1,51 +1,105 @@
-
 {% extends "base.html" %}
 
 {% block title %}登录 - 学生信息管理系统{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0">用户登录</h4>
+<style>
+    /* 自定义样式：去蓝化 + 教育暖色风格 */
+    .bg-chalkboard {
+        background-color: #1A3A2F; /* 深绿黑板 */
+        background-image: radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px);
+        background-size: 20px 20px;
+        min-height: 100vh;
+        color: #f8f9fa;
+    }
+
+    .login-card {
+        background-color: #FFF9F0; /* 浅米色卡片，像纸张 */
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        max-width: 420px;
+        width: 100%;
+    }
+
+    .btn-primary-custom {
+        background-color: #F28C28; /* 橙色按钮 */
+        border-color: #F28C28;
+        font-weight: bold;
+        padding: 10px;
+    }
+    .btn-primary-custom:hover {
+        background-color: #d97706; /* 深一点的橙 */
+        border-color: #d97706;
+    }
+
+    .text-muted-custom {
+        color: #5a5a5a !important;
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #333;
+    }
+
+    .card-header h4 {
+        color: #1A3A2F;
+        font-weight: bold;
+    }
+
+    a.text-primary-custom {
+        color: #F28C28 !important;
+        text-decoration: none;
+    }
+    a.text-primary-custom:hover {
+        color: #d97706 !important;
+        text-decoration: underline;
+    }
+</style>
+
+<div class="container-fluid p-0">
+    <div class="bg-chalkboard d-flex align-items-center justify-content-center">
+        <div class="login-card">
+            <div class="card-header text-center py-3">
+                <h4 class="mb-0">学生信息管理系统</h4>
             </div>
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="POST" action="">
                     {{ form.hidden_tag() }}
                     <div class="mb-3">
                         {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control") }}
+                        {{ form.username(class="form-control form-control-lg", placeholder="请输入用户名") }}
                         {% if form.username.errors %}
-                            <div class="invalid-feedback d-block">
+                            <div class="text-danger mt-1">
                                 {% for error in form.username.errors %}
-                                    <span>{{ error }}</span>
+                                    <small>{{ error }}</small>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </div>
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control") }}
+                        {{ form.password(class="form-control form-control-lg", placeholder="请输入密码") }}
                         {% if form.password.errors %}
-                            <div class="invalid-feedback d-block">
+                            <div class="text-danger mt-1">
                                 {% for error in form.password.errors %}
-                                    <span>{{ error }}</span>
+                                    <small>{{ error }}</small>
                                 {% endfor %}
                             </div>
                         {% endif %}
                     </div>
                     <div class="mb-3 form-check">
                         {{ form.remember_me(class="form-check-input") }}
-                        {{ form.remember_me.label(class="form-check-label") }}
+                        {{ form.remember_me.label(class="form-check-label text-muted-custom") }}
                     </div>
                     <div class="d-grid gap-2">
-                        {{ form.submit(class="btn btn-primary") }}
+                        {{ form.submit(class="btn btn-primary-custom w-100") }}
                     </div>
                 </form>
             </div>
-            <div class="card-footer text-center">
-                <p class="mb-0">还没有账户？ <a href="{{ url_for('register') }}">立即注册</a></p>
+            <div class="card-footer text-center py-3">
+                <p class="mb-0 text-muted-custom">
+                    还没有账户？ <a href="{{ url_for('register') }}" class="text-primary-custom">立即注册</a>
+                </p>
             </div>
         </div>
     </div>
