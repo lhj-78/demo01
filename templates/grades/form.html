@@ -1,0 +1,93 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - 学生信息管理系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.student_id.label(class="form-label") }}
+                        {{ form.student_id(class="form-select") }}
+                        {% if form.student_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.student_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.course_id.label(class="form-label") }}
+                        {{ form.course_id(class="form-select") }}
+                        {% if form.course_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.course_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.score.label(class="form-label") }}
+                        {{ form.score(class="form-control", step="0.1") }}
+                        {% if form.score.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.score.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.semester.label(class="form-label") }}
+                        {{ form.semester(class="form-control") }}
+                        {% if form.semester.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.semester.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.exam_date.label(class="form-label") }}
+                        {{ form.exam_date(class="form-control") }}
+                        {% if form.exam_date.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.exam_date.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('list_grades') }}" class="btn btn-outline-secondary">返回列表</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 设置日期选择器的最大值为今天
+    document.addEventListener('DOMContentLoaded', function() {
+        const examDateInput = document.querySelector('#exam_date');
+        if (examDateInput) {
+            const today = new Date().toISOString().split('T')[0];
+            examDateInput.max = today;
+        }
+    });
+</script>
+{% endblock %}

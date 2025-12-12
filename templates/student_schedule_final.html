@@ -1,0 +1,547 @@
+{% extends "base.html" %}
+
+{% block title %}我的课表 - 学生信息管理系统{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">我的课表</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" id="semesterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                当前学期: 2023-2024学年 第一学期
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="semesterDropdown">
+                <li><a class="dropdown-item" href="#">2023-2024学年 第一学期</a></li>
+                <li><a class="dropdown-item" href="#">2022-2023学年 第二学期</a></li>
+                <li><a class="dropdown-item" href="#">2022-2023学年 第一学期</a></li>
+            </ul>
+        </div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-outline-primary" id="weekView">周视图</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="listView">列表视图</button>
+        </div>
+    </div>
+</div>
+
+<!-- 周视图 -->
+<div id="weekViewContainer" class="schedule-container">
+    <div class="table-responsive">
+        <table class="table table-bordered schedule-table">
+            <thead>
+                <tr>
+                    <th class="time-column">时间</th>
+                    <th>周一</th>
+                    <th>周二</th>
+                    <th>周三</th>
+                    <th>周四</th>
+                    <th>周五</th>
+                    <th>周六</th>
+                    <th>周日</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="time-slot">08:00-08:45</td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">高等数学</div>
+                            <div class="course-teacher">张教授</div>
+                            <div class="course-location">教学楼A101</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">高等数学</div>
+                            <div class="course-teacher">张教授</div>
+                            <div class="course-location">教学楼A101</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">08:55-09:40</td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">大学英语</div>
+                            <div class="course-teacher">李老师</div>
+                            <div class="course-location">教学楼B202</div>
+                        </div>
+                    </td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">高等数学</div>
+                            <div class="course-teacher">张教授</div>
+                            <div class="course-location">教学楼A101</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">高等数学</div>
+                            <div class="course-teacher">张教授</div>
+                            <div class="course-location">教学楼A101</div>
+                        </div>
+                    </td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">大学英语</div>
+                            <div class="course-teacher">李老师</div>
+                            <div class="course-location">教学楼B202</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">10:00-10:45</td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">大学英语</div>
+                            <div class="course-teacher">李老师</div>
+                            <div class="course-location">教学楼B202</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">程序设计</div>
+                            <div class="course-teacher">王老师</div>
+                            <div class="course-location">实验楼C303</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">大学英语</div>
+                            <div class="course-teacher">李老师</div>
+                            <div class="course-location">教学楼B202</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">10:55-11:40</td>
+                    <td></td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">程序设计</div>
+                            <div class="course-teacher">王老师</div>
+                            <div class="course-location">实验楼C303</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">14:00-14:45</td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">数据结构</div>
+                            <div class="course-teacher">赵教授</div>
+                            <div class="course-location">教学楼D404</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">数据结构</div>
+                            <div class="course-teacher">赵教授</div>
+                            <div class="course-location">教学楼D404</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">14:55-15:40</td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">数据结构</div>
+                            <div class="course-teacher">赵教授</div>
+                            <div class="course-location">教学楼D404</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">数据结构</div>
+                            <div class="course-teacher">赵教授</div>
+                            <div class="course-location">教学楼D404</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">16:00-16:45</td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">体育</div>
+                            <div class="course-teacher">陈老师</div>
+                            <div class="course-location">体育馆</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">体育</div>
+                            <div class="course-teacher">陈老师</div>
+                            <div class="course-location">体育馆</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">16:55-17:40</td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">体育</div>
+                            <div class="course-teacher">陈老师</div>
+                            <div class="course-location">体育馆</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">体育</div>
+                            <div class="course-teacher">陈老师</div>
+                            <div class="course-location">体育馆</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">19:00-19:45</td>
+                    <td></td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">选修课：人工智能导论</div>
+                            <div class="course-teacher">刘教授</div>
+                            <div class="course-location">教学楼E505</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="time-slot">19:55-20:40</td>
+                    <td></td>
+                    <td></td>
+                    <td class="course-cell">
+                        <div class="course-item">
+                            <div class="course-name">选修课：人工智能导论</div>
+                            <div class="course-teacher">刘教授</div>
+                            <div class="course-location">教学楼E505</div>
+                        </div>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 列表视图 -->
+<div id="listViewContainer" class="schedule-container" style="display: none;">
+    <div class="accordion" id="scheduleAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingMonday">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMonday" aria-expanded="true" aria-controls="collapseMonday">
+                    周一
+                </button>
+            </h2>
+            <div id="collapseMonday" class="accordion-collapse collapse show" aria-labelledby="headingMonday" data-bs-parent="#scheduleAccordion">
+                <div class="accordion-body">
+                    <div class="list-group">
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">08:55-09:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">大学英语</p>
+                            <small class="schedule-list-teacher">教师: 李老师</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼B202</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">10:00-10:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">大学英语</p>
+                            <small class="schedule-list-teacher">教师: 李老师</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼B202</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">14:00-14:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">数据结构</p>
+                            <small class="schedule-list-teacher">教师: 赵教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼D404</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">14:55-15:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">数据结构</p>
+                            <small class="schedule-list-teacher">教师: 赵教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼D404</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTuesday">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTuesday" aria-expanded="false" aria-controls="collapseTuesday">
+                    周二
+                </button>
+            </h2>
+            <div id="collapseTuesday" class="accordion-collapse collapse" aria-labelledby="headingTuesday" data-bs-parent="#scheduleAccordion">
+                <div class="accordion-body">
+                    <div class="list-group">
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">08:00-08:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">高等数学</p>
+                            <small class="schedule-list-teacher">教师: 张教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼A101</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">08:55-09:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">高等数学</p>
+                            <small class="schedule-list-teacher">教师: 张教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼A101</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">16:00-16:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">体育</p>
+                            <small class="schedule-list-teacher">教师: 陈老师</small>
+                            <small class="schedule-list-location ms-3">地点: 体育馆</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">16:55-17:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">体育</p>
+                            <small class="schedule-list-teacher">教师: 陈老师</small>
+                            <small class="schedule-list-location ms-3">地点: 体育馆</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingWednesday">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWednesday" aria-expanded="false" aria-controls="collapseWednesday">
+                    周三
+                </button>
+            </h2>
+            <div id="collapseWednesday" class="accordion-collapse collapse" aria-labelledby="headingWednesday" data-bs-parent="#scheduleAccordion">
+                <div class="accordion-body">
+                    <div class="list-group">
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">10:00-10:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">程序设计</p>
+                            <small class="schedule-list-teacher">教师: 王老师</small>
+                            <small class="schedule-list-location ms-3">地点: 实验楼C303</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">10:55-11:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">程序设计</p>
+                            <small class="schedule-list-teacher">教师: 王老师</small>
+                            <small class="schedule-list-location ms-3">地点: 实验楼C303</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">19:00-19:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">选修课：人工智能导论</p>
+                            <small class="schedule-list-teacher">教师: 刘教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼E505</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">19:55-20:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">选修课：人工智能导论</p>
+                            <small class="schedule-list-teacher">教师: 刘教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼E505</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThursday">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThursday" aria-expanded="false" aria-controls="collapseThursday">
+                    周四
+                </button>
+            </h2>
+            <div id="collapseThursday" class="accordion-collapse collapse" aria-labelledby="headingThursday" data-bs-parent="#scheduleAccordion">
+                <div class="accordion-body">
+                    <div class="list-group">
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">08:00-08:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">高等数学</p>
+                            <small class="schedule-list-teacher">教师: 张教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼A101</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">08:55-09:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">高等数学</p>
+                            <small class="schedule-list-teacher">教师: 张教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼A101</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">08:55-09:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">大学英语</p>
+                            <small class="schedule-list-teacher">教师: 李老师</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼B202</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">10:00-10:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">大学英语</p>
+                            <small class="schedule-list-teacher">教师: 李老师</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼B202</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">14:00-14:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">数据结构</p>
+                            <small class="schedule-list-teacher">教师: 赵教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼D404</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">14:55-15:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">数据结构</p>
+                            <small class="schedule-list-teacher">教师: 赵教授</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼D404</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">16:00-16:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">体育</p>
+                            <small class="schedule-list-teacher">教师: 陈老师</small>
+                            <small class="schedule-list-location ms-3">地点: 体育馆</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">16:55-17:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">体育</p>
+                            <small class="schedule-list-teacher">教师: 陈老师</small>
+                            <small class="schedule-list-location ms-3">地点: 体育馆</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingFriday">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFriday" aria-expanded="false" aria-controls="collapseFriday">
+                    周五
+                </button>
+            </h2>
+            <div id="collapseFriday" class="accordion-collapse collapse" aria-labelledby="headingFriday" data-bs-parent="#scheduleAccordion">
+                <div class="accordion-body">
+                    <div class="list-group">
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">08:55-09:40</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">大学英语</p>
+                            <small class="schedule-list-teacher">教师: 李老师</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼B202</small>
+                        </div>
+                        <div class="list-group-item schedule-list-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">10:00-10:45</h5>
+                            </div>
+                            <p class="mb-1 schedule-list-course">大学英语</p>
+                            <small class="schedule-list-teacher">教师: 李老师</small>
+                            <small class="schedule-list-location ms-3">地点: 教学楼B202</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 课程详情模态框 -->
+<div class="modal fade" id="courseDetailModal" tabindex="-1" aria-labelledby="courseDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="courseDetailModalLabel">课程详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6>课程名称</h6>
+                    <p id="modalCourseName"></p>
+                </div>
+                <div class="mb-3">
+                    <h6>授课教师</h6>
+                    <p id="modalCourseTeacher"></p>
+                </div>
+                <div class="mb-3">
+                    <h6>上课地点</h6>
+                    <p id="modalCourseLocation"></p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 引入自定义样式和脚本 -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/schedule.css') }}">
+<script src="{{ url_for('static', filename='js/schedule.js') }}"></script>
+{% endblock %}
