@@ -15,7 +15,8 @@
                     {{ form.hidden_tag() }}
                     <div class="mb-3">
                         {{ form.student_id.label(class="form-label") }}
-                        {{ form.student_id(class="form-control") }}
+                        {{ form.student_id(class="form-control", placeholder="留空则自动生成学号") }}
+                        <div class="form-text">留空则系统将自动生成学号</div>
                         {% if form.student_id.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.student_id.errors %}
@@ -74,6 +75,28 @@
                         {% if form.address.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.address.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control", placeholder="留空则不修改密码") }}
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.password2.label(class="form-label") }}
+                        {{ form.password2(class="form-control", placeholder="留空则不修改密码") }}
+                        {% if form.password2.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password2.errors %}
                                     <span>{{ error }}</span>
                                 {% endfor %}
                             </div>
