@@ -1,0 +1,69 @@
+
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - 学生信息管理系统{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ form.course_code.label(class="form-label") }}
+                        {{ form.course_code(class="form-control") }}
+                        {% if form.course_code.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.course_code.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.course_name.label(class="form-label") }}
+                        {{ form.course_name(class="form-control") }}
+                        {% if form.course_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.course_name.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.credit.label(class="form-label") }}
+                        {{ form.credit(class="form-control", step="0.1") }}
+                        {% if form.credit.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.credit.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows="5") }}
+                        {% if form.description.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.description.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('list_courses') }}" class="btn btn-outline-secondary">返回列表</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

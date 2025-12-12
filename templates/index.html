@@ -1,0 +1,82 @@
+
+{% extends "base.html" %}
+
+{% block title %}首页 - 学生信息管理系统{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12">
+        {% if not current_user.is_authenticated %}
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">欢迎使用学生信息管理系统</h1>
+            <p class="lead">这是一个功能完善的学生信息管理系统，提供学生信息管理、课程管理、成绩管理等功能。</p>
+            <hr class="my-4">
+            <p>请登录或注册以开始使用系统。</p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}" role="button">登录</a>
+            <a class="btn btn-outline-primary btn-lg ms-2" href="{{ url_for('register') }}" role="button">注册</a>
+        </div>
+        {% else %}
+        <div class="jumbotron bg-light p-5 rounded">
+            <h1 class="display-4">欢迎回来，{{ current_user.username }}！</h1>
+            <p class="lead">您已成功登录学生信息管理系统。</p>
+            <hr class="my-4">
+            <p>您可以开始使用系统的各项功能。</p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('admin_dashboard') if current_user.is_admin else url_for('dashboard') }}" role="button">进入控制台</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if not current_user.is_authenticated %}
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-people-fill text-primary" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">用户管理</h5>
+                <p class="card-text">管理系统用户，包括学生和管理员的账户信息。</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-book-fill text-success" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">课程管理</h5>
+                <p class="card-text">添加、编辑和删除课程信息，管理课程安排。</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-clipboard-data-fill text-info" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">成绩管理</h5>
+                <p class="card-text">记录和管理学生成绩，查看成绩统计信息。</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-building text-warning" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">院系管理</h5>
+                <p class="card-text">管理学校院系信息，包括院系代码、名称等。</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-person-badge-fill text-danger" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">学生管理</h5>
+                <p class="card-text">管理学生基本信息，包括学号、姓名、联系方式等。</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
