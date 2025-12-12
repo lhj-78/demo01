@@ -23,7 +23,10 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             padding: 1rem 0;
             background: linear-gradient(135deg, #4a00e0, #00bfff) !important;
-            margin-bottom: 10px;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1030;
         }
         .navbar-brand {
             font-weight: 700;
@@ -290,7 +293,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container-fluid">
             <a class="navbar-brand" href="{{ url_for('index') }}">
                 <i class="fas fa-graduation-cap"></i> 学生信息管理系统
@@ -330,7 +333,10 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                                 <li><a class="dropdown-item" href="{{ url_for('profile') }}">个人信息</a></li>
-                                {% if not current_user.is_admin %}
+                                {% if current_user.is_admin %}
+                                <li><a class="dropdown-item" href="{{ url_for('admin_change_password') }}">修改密码</a></li>
+                                {% else %}
+                                <li><a class="dropdown-item" href="{{ url_for('change_password') }}">修改密码</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('my_grades') }}">我的成绩</a></li>
                                 {% endif %}
                                 <li><hr class="dropdown-divider"></li>
@@ -350,7 +356,7 @@
         </div>
     </nav>
 
-    <div class="container-fluid">
+    <div class="container-fluid" style="padding-top: 70px;">
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="row mt-3">

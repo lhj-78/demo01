@@ -523,7 +523,8 @@ def create_grade():
     if not current_user.is_admin:
         abort(403)
     form = GradeForm()
-    form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.all()]
+    # 只列出非管理员用户对应的学生，排除关联管理员（如 admin1）
+    form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.join(User).filter(User.is_admin == False).all()]
     form.course_id.choices = [(c.id, f"{c.course_name} ({c.course_code})") for c in Course.query.all()]
 
     if form.validate_on_submit():
@@ -547,7 +548,8 @@ def edit_grade(grade_id):
         abort(403)
     grade = Grade.query.get_or_404(grade_id)
     form = GradeForm(obj=grade)
-    form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.all()]
+    # 只列出非管理员用户对应的学生，排除关联管理员（如 admin1）
+    form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.join(User).filter(User.is_admin == False).all()]
     form.course_id.choices = [(c.id, f"{c.course_name} ({c.course_code})") for c in Course.query.all()]
 
     if form.validate_on_submit():
@@ -666,6 +668,44 @@ def my_grades():
 
     grades = Grade.query.filter_by(student_id=student.id).all()
     return render_template('my_grades.html', grades=grades)
+
+# 管理员修改密码
+@app.route('/admin/change_password', methods=['GET', 'POST'])
+@login_required
+def admin_change_password():
+    # 确保只有管理员可以访问
+    if not current_user.is_admin:
+        abort(403)
+    
+    form = PasswordForm()
+    if form.validate_on_submit():
+        current_user.set_password(form.password.data)
+        db.session.commit()
+        flash('密码已成功修改，请重新登录！')
+        # 修改密码后强制退出登录
+        logout_user()
+        return redirect(url_for('login'))
+    
+    return render_template('admin_change_password.html', form=form, title='修改密码')
+
+# 学生修改密码
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    # 确保只有学生（非管理员）可以访问
+    if current_user.is_admin:
+        abort(403)
+    
+    form = PasswordForm()
+    if form.validate_on_submit():
+        current_user.set_password(form.password.data)
+        db.session.commit()
+        flash('密码已成功修改，请重新登录！')
+        # 修改密码后强制退出登录
+        logout_user()
+        return redirect(url_for('login'))
+    
+    return render_template('change_password.html', form=form, title='修改密码')
 
 # 初始化数据库和创建管理员
 def init_db():
