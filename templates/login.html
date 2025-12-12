@@ -1,52 +1,269 @@
-
 {% extends "base.html" %}
 
 {% block title %}登录 - 学生信息管理系统{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                <h4 class="mb-0">用户登录</h4>
+<style>
+/* 渐变背景与半透明圆点装饰 */
+.bg-gradient {
+    background: linear-gradient(135deg, #4a00e0, #00bfff);
+    position: relative;
+    overflow: hidden;
+    height: 100vh;
+}
+
+.bg-gradient::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 1;
+}
+
+.bg-gradient::after {
+    content: '';
+    position: absolute;
+    bottom: 20%;
+    right: 15%;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    z-index: 1;
+}
+
+/* 左侧品牌区域 */
+.brand-section {
+    text-align: center;
+    color: white;
+    padding: 2rem 0;
+}
+
+.brand-logo {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1rem;
+}
+
+.brand-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    margin: 0;
+}
+
+.brand-subtitle {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-top: 0.5rem;
+}
+
+/* 功能卡片 */
+.feature-card {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 1rem;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: transform 0.2s;
+}
+
+.feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.feature-icon {
+    color: white;
+    font-size: 1.2rem;
+}
+
+.feature-text {
+    color: white;
+    margin: 0;
+}
+
+.feature-desc {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: 0.3rem;
+}
+
+/* 右侧登录表单 */
+.login-form-container {
+    background: #f8f9fa;
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-form {
+    background: white;
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.login-form h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #333;
+    text-align: center;
+}
+
+.login-form .form-control {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 1rem;
+}
+
+.login-form .btn-login {
+    background: linear-gradient(to right, #007BFF, #00BFFF);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    width: 100%;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.login-form .btn-login:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+/* 演示账号 */
+.demo-accounts {
+    margin-top: 20px;
+    font-size: 0.9rem;
+    color: #666;
+    text-align: center;
+}
+
+.demo-account {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 8px 0;
+    gap: 10px;
+}
+
+.demo-role {
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.admin { background-color: #dc3545; color: white; }
+.teacher { background-color: #ffc107; color: black; }
+
+.demo-username {
+    margin-left: auto;
+}
+</style>
+
+<div class="container-fluid p-0 d-flex">
+    <!-- 左侧：品牌与功能展示 -->
+    <div class="bg-gradient flex-grow-1 d-flex flex-column justify-content-center align-items-center px-5 py-5">
+        <div class="brand-section">
+            <!-- 使用 SVG 替代 logo.png -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="white" viewBox="0 0 16 16">
+                <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
+            </svg>
+            <h1 class="brand-title">高校学生成绩管理系统</h1>
+            <p class="brand-subtitle">Student Grade Management System</p>
+        </div>
+
+        <div class="d-flex flex-column gap-3 w-100" style="max-width: 300px;">
+            <div class="feature-card">
+                <i class="fas fa-chart-bar feature-icon"></i>
+                <div>
+                    <h5 class="feature-text">智能分析</h5>
+                    <p class="feature-desc">多维度成绩统计与分析</p>
+                </div>
             </div>
-            <div class="card-body">
-                <form method="POST" action="">
-                    {{ form.hidden_tag() }}
-                    <div class="mb-3">
-                        {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control") }}
-                        {% if form.username.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.username.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control") }}
-                        {% if form.password.errors %}
-                            <div class="invalid-feedback d-block">
-                                {% for error in form.password.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="mb-3 form-check">
-                        {{ form.remember_me(class="form-check-input") }}
-                        {{ form.remember_me.label(class="form-check-label") }}
-                    </div>
-                    <div class="d-grid gap-2">
-                        {{ form.submit(class="btn btn-primary") }}
-                    </div>
-                </form>
+            <div class="feature-card">
+                <i class="fas fa-users feature-icon"></i>
+                <div>
+                    <h5 class="feature-text">协同管理</h5>
+                    <p class="feature-desc">教师学生协同管理平台</p>
+                </div>
             </div>
-            <div class="card-footer text-center">
-                <p class="mb-0">还没有账户？ <a href="{{ url_for('register') }}">立即注册</a></p>
+            <div class="feature-card">
+                <i class="fas fa-shield-alt feature-icon"></i>
+                <div>
+                    <h5 class="feature-text">系统安全</h5>
+                    <p class="feature-desc">企业级安全保障体系</p>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 右侧：登录表单 -->
+    <div class="login-form-container">
+        <div class="login-form">
+            <h2>欢迎登录</h2>
+            <p class="text-muted">请输入您的账号信息</p>
+
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.username.label(class="form-label") }}
+                    {{ form.username(class="form-control", placeholder="请输入用户名或学号") }}
+                    {% if form.username.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.username.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control", placeholder="请输入密码") }}
+                    {% if form.password.errors %}
+                        <div class="text-danger mt-1">
+                            {% for error in form.password.errors %}
+                                <small>{{ error }}</small>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="mb-3 form-check">
+                    {{ form.remember_me(class="form-check-input") }}
+                    {{ form.remember_me.label(class="form-check-label") }}
+                    <a href="#" class="text-primary">忘记密码？</a>
+                </div>
+
+                <button type="submit" class="btn-login">登录</button>
+
+                <!-- 演示账号 -->
+                <div class="demo-accounts">
+                    <p class="mb-2"><strong>演示账号</strong></p>
+                    <div class="demo-account">
+                        <span class="demo-role admin">管理员</span>
+                        <span class="demo-username">admin / admin123</span>
+                    </div>
+                    <div class="demo-account">
+                        <span class="demo-role teacher">教师</span>
+                        <span class="demo-username">teacher / teacher123</span>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 </div>
