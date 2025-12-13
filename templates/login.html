@@ -206,7 +206,7 @@
                 <div class="mb-3 form-check">
                     {{ form.remember_me(class="form-check-input") }}
                     {{ form.remember_me.label(class="form-check-label") }}
-                    <a href="#" class="text-primary">忘记密码？</a>
+                    <a href="#" id="forgot-password" class="text-primary">忘记密码？</a>
                 </div>
 
                 <button type="submit" class="btn-login">登录</button>
@@ -214,4 +214,46 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const forgotPasswordLink = document.getElementById('forgot-password');
+    
+    forgotPasswordLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // 获取用户名/学号
+        const username = document.getElementById('username').value;
+        
+        if (!username) {
+            alert("请先输入用户名或学号");
+            return;
+        }
+        
+        // 发送AJAX请求重置密码
+        fetch('/reset_password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'username': username,
+                'csrf_token': document.querySelector('input[name="csrf_token"]').value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("密码已重置为：123456，请使用新密码登录");
+            } else {
+                alert(data.message || "重置密码失败，请稍后再试");
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert("网络错误，请稍后再试");
+        });
+    });
+});
+</script>
 {% endblock %}

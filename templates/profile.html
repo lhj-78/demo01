@@ -69,12 +69,26 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">院系</label>
-                        <input type="text" class="form-control" value="{{ student.department.dept_name if student and student.department else '' }}" readonly>
+                        {{ form.department_id.label(class="form-label") }}
+                        {{ form.department_id(class="form-select") }}
+                        {% if form.department_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.department_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">专业</label>
-                        <input type="text" class="form-control" value="{{ student.major.major_name if student and student.major else '' }}" readonly>
+                        {{ form.major_id.label(class="form-label") }}
+                        {{ form.major_id(class="form-select") }}
+                        {% if form.major_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.major_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="mb-3">
                         {{ form.address.label(class="form-label") }}
@@ -105,6 +119,47 @@
         if (birthDateInput) {
             const today = new Date().toISOString().split('T')[0];
             birthDateInput.max = today;
+        }
+        
+        // 院系选择改变时，更新专业选项
+        const departmentSelect = document.querySelector('#department_id');
+        const majorSelect = document.querySelector('#major_id');
+        
+        if (departmentSelect && majorSelect) {
+            departmentSelect.addEventListener('change', function() {
+                const deptId = this.value;
+                
+                // 重置专业选择
+                majorSelect.innerHTML = '<option value="0">请选择专业</option>';
+                
+                // 如果选择了院系，获取该院系下的专业
+                if (deptId && deptId !== '0') {
+                    fetch(`/api/departments/${deptId}/majors`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data && data.length > 0) {
+                                data.forEach(major => {
+                                    const option = document.createElement('option');
+                                    option.value = major.id;
+                                    option.textContent = major.major_name;
+                                    majorSelect.appendChild(option);
+                                });
+                            } else {
+                                const option = document.createElement('option');
+                                option.value = "0";
+                                option.textContent = "该院系暂无专业";
+                                majorSelect.appendChild(option);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('获取专业列表失败:', error);
+                            const option = document.createElement('option');
+                            option.value = "0";
+                            option.textContent = "获取专业列表失败";
+                            majorSelect.appendChild(option);
+                        });
+                }
+            });
         }
     });
 </script>

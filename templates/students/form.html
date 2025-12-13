@@ -104,7 +104,7 @@
                     </div>
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control", placeholder="留空则使用默认密码") }}
+                        {{ form.password(class="form-control", placeholder="留空则使用初始密码") }}
                         {% if form.password.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.password.errors %}
@@ -115,7 +115,7 @@
                     </div>
                     <div class="mb-3">
                         {{ form.password2.label(class="form-label") }}
-                        {{ form.password2(class="form-control", placeholder="留空则使用默认密码") }}
+                        {{ form.password2(class="form-control", placeholder="留空则使用初始密码") }}
                         {% if form.password2.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.password2.errors %}

@@ -93,6 +93,37 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
+@app.route('/reset_password', methods=['POST'])
+def reset_password():
+    username = request.form.get('username')
+    
+    if not username:
+        return jsonify({'success': False, 'message': '请提供用户名或学号'})
+    
+    try:
+        # 首先尝试通过学号查找学生
+        student = Student.query.filter_by(student_id=username).first()
+        user = None
+        
+        # 如果找到学生记录，获取关联的用户
+        if student and student.user:
+            user = student.user
+        else:
+            # 如果通过学号找不到，尝试通过用户名查找
+            user = User.query.filter_by(username=username).first()
+        
+        if user is None:
+            return jsonify({'success': False, 'message': '用户不存在'})
+        
+        # 重置密码为123456
+        user.set_password('123456')
+        db.session.commit()
+        
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'重置密码失败: {str(e)}'})
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     # 如果用户已经登录，重定向到仪表板
@@ -756,7 +787,35 @@ def profile():
         db.session.add(student)
         db.session.commit()
 
+    # 填充院系和专业下拉框选项
+    departments = Department.query.all()
+    
     form = StudentForm(obj=student)
+    form.department_id.choices = [(0, '请选择院系')] + [(d.id, d.dept_name) for d in departments]
+    
+    # 如果有院系，则获取第一个院系的专业列表作为初始选项
+    if departments:
+        first_dept_id = departments[0].id
+        majors = Major.query.filter_by(dept_id=first_dept_id).all()
+        if majors:
+            form.major_id.choices = [(0, '请选择专业')] + [(m.id, m.major_name) for m in majors]
+        else:
+            form.major_id.choices = [(0, '该院系暂无专业')]
+    else:
+        form.major_id.choices = [(0, '请先添加院系')]
+    
+    # 如果学生已有院系，则更新专业选项
+    if student and student.dept_id:
+        majors = Major.query.filter_by(dept_id=student.dept_id).all()
+        if majors:
+            form.major_id.choices = [(0, '请选择专业')] + [(m.id, m.major_name) for m in majors]
+            # 设置当前选中的专业
+            if student.major_id:
+                form.major_id.data = student.major_id
+        
+        # 设置当前选中的院系
+        form.department_id.data = student.dept_id
+    
     if form.validate_on_submit():
         student.student_id = form.student_id.data
         student.name = form.name.data
@@ -764,8 +823,28 @@ def profile():
         student.birth_date = form.birth_date.data
         student.phone = form.phone.data
         student.address = form.address.data
+        
+        # 更新院系和专业
+        if form.department_id.data and form.department_id.data != 0:
+            student.dept_id = form.department_id.data
+        else:
+            student.dept_id = None
+            
+        if form.major_id.data and form.major_id.data != 0:
+            student.major_id = form.major_id.data
+        else:
+            student.major_id = None
+        
+        # 如果提供了新密码，更新密码
+        if form.password.data:
+            current_user.set_password(form.password.data)
+            flash('个人信息和密码已更新，请重新登录！')
+            logout_user()
+            return redirect(url_for('login'))
+        else:
+            flash('个人信息已更新')
+            
         db.session.commit()
-        flash('个人信息已更新')
         return redirect(url_for('dashboard'))
 
     return render_template('profile.html', form=form, student=student)
