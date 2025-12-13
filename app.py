@@ -421,6 +421,11 @@ def edit_student(student_id):
         return redirect(url_for('list_students'))
     
     form = StudentForm(obj=student)
+
+    # 填充院系和专业下拉框选项
+    form.department_id.choices = [(0, '请选择院系')] + [(d.id, d.dept_name) for d in Department.query.all()]
+    form.major_id.choices = [(0, '请选择专业')] + [(m.id, m.major_name) for m in Major.query.all()]
+
     if form.validate_on_submit():
         student.student_id = form.student_id.data
         student.name = form.name.data
@@ -429,18 +434,44 @@ def edit_student(student_id):
         student.phone = form.phone.data
         student.address = form.address.data
 
+        # 更新院系和专业
+        if form.department_id.data and form.department_id.data != 0:
+            student.dept_id = form.department_id.data
+        else:
+            student.dept_id = None
+
+        if form.major_id.data and form.major_id.data != 0:
+            student.major_id = form.major_id.data
+        else:
+            student.major_id = None
+
         # 如果提供了新密码，更新密码
         if form.password.data:
             student.user.set_password(form.password.data)
-            flash('学生信息和密码已更新')
+            flash('学生信息、院系专业和密码已更新')
         else:
-            flash('学生信息已更新')
+            flash('学生信息和院系专业已更新')
 
         db.session.commit()
         return redirect(url_for('list_students'))
     return render_template('students/form.html', form=form, title='编辑学生')
 
 # 更新学生院系和专业
+# API端点：获取院系和专业数据
+@app.route('/api/departments_majors')
+@login_required
+def get_departments_majors():
+    if not current_user.is_admin:
+        return jsonify({'error': '无权访问'}), 403
+
+    departments = Department.query.all()
+    majors = Major.query.all()
+
+    return jsonify({
+        'departments': [{'id': d.id, 'dept_name': d.dept_name} for d in departments],
+        'majors': [{'id': m.id, 'major_name': m.major_name, 'dept_id': m.dept_id} for m in majors]
+    })
+
 @app.route('/admin/students/<int:student_id>/update_dept', methods=['POST'])
 @login_required
 def update_student_dept(student_id):
@@ -1018,6 +1049,16 @@ def init_db():
             db.session.add(course1)
             db.session.add(course2)
             db.session.add(course3)
+
+            # 创建专业数据
+            major1 = Major(major_code='CS01', major_name='计算机科学与技术', dept_id=dept1.id)
+            major2 = Major(major_code='CS02', major_name='软件工程', dept_id=dept1.id)
+            major3 = Major(major_code='EE01', major_name='电子信息工程', dept_id=dept2.id)
+            major4 = Major(major_code='EE02', major_name='通信工程', dept_id=dept2.id)
+            db.session.add(major1)
+            db.session.add(major2)
+            db.session.add(major3)
+            db.session.add(major4)
 
             db.session.commit()
 

@@ -49,7 +49,7 @@
                     </div>
                     <div class="mb-3">
                         {{ form.department_id.label(class="form-label") }}
-                        {{ form.department_id(class="form-select") }}
+                        {{ form.department_id(class="form-select", id="department_id") }}
                         {% if form.department_id.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.department_id.errors %}
@@ -60,7 +60,7 @@
                     </div>
                     <div class="mb-3">
                         {{ form.major_id.label(class="form-label") }}
-                        {{ form.major_id(class="form-select") }}
+                        {{ form.major_id(class="form-select", id="major_id") }}
                         {% if form.major_id.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.major_id.errors %}
@@ -144,6 +144,63 @@
             const today = new Date().toISOString().split('T')[0];
             birthDateInput.max = today;
         }
+
+        // 专业根据院系动态更新
+        const departmentSelect = document.getElementById('department_id');
+        const majorSelect = document.getElementById('major_id');
+
+        // 保存当前选中的专业ID
+        const currentMajorId = majorSelect.value;
+
+        // 获取院系和专业数据
+        fetch('/api/departments_majors')
+            .then(response => response.json())
+            .then(data => {
+                // 监听院系选择变化
+                departmentSelect.addEventListener('change', function() {
+                    updateMajorOptions(this.value);
+                });
+
+                // 初始化专业选项
+                updateMajorOptions(departmentSelect.value);
+
+                // 恢复之前选中的专业（如果存在）
+                if (currentMajorId) {
+                    majorSelect.value = currentMajorId;
+                }
+
+                // 更新专业选项的函数
+                function updateMajorOptions(deptId) {
+                    // 清空专业选项
+                    majorSelect.innerHTML = '<option value="0">请选择专业</option>';
+
+                    // 如果没有选择院系，直接返回
+                    if (!deptId || deptId === '0') {
+                        return;
+                    }
+
+                    // 根据院系ID获取专业列表
+                    const majors = data.majors.filter(major => major.dept_id == deptId);
+
+                    // 添加专业选项
+                    majors.forEach(major => {
+                        const option = document.createElement('option');
+                        option.value = major.id;
+                        option.textContent = major.major_name;
+                        majorSelect.appendChild(option);
+                    });
+
+                    // 检查是否有专业数据
+                    if (majors.length === 0) {
+                        const option = document.createElement('option');
+                        option.value = "";
+                        option.textContent = "该院系暂无专业";
+                        option.disabled = true;
+                        majorSelect.appendChild(option);
+                    }
+                }
+            })
+            .catch(error => console.error('获取院系和专业数据失败:', error));
     });
 </script>
 {% endblock %}
