@@ -19,10 +19,16 @@ class User(UserMixin, db.Model):
     student_info = db.relationship('Student', backref='user', uselist=False)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        # 使用pbkdf2:sha256算法哈希密码
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        try:
+            # 尝试使用常规方式验证密码
+            return check_password_hash(self.password_hash, password)
+        except ValueError:
+            # 如果遇到不支持的哈希格式，返回False
+            return False
 
     def __repr__(self):
         return f'<User {self.username}>'

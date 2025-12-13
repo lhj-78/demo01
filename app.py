@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, request, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, Student, Course, Grade, Department
-from forms import LoginForm, RegistrationForm, StudentForm, CourseForm, GradeForm, DepartmentForm, AdminForm
+from forms import LoginForm, RegistrationForm, StudentForm, CourseForm, GradeForm, DepartmentForm, AdminForm, PasswordForm
 from datetime import datetime, timedelta
 
 app = Flask(__name__)
@@ -40,9 +40,21 @@ def login():
 
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        # 首先尝试通过学号查找学生
+        student = Student.query.filter_by(student_id=form.username.data).first()
+        user = None
+
+        # 如果找到学生记录，获取关联的用户
+        if student and student.user:
+            user = student.user
+            print(f"通过学号找到用户: {user.username}")  # 调试信息
+        else:
+            # 如果通过学号找不到，尝试通过用户名查找
+            user = User.query.filter_by(username=form.username.data).first()
+            print(f"通过用户名找到用户: {user.username if user else 'None'}")  # 调试信息
+
         if user is None or not user.check_password(form.password.data):
-            flash('用户名或密码错误')
+            flash('用户名/学号或密码错误')
             return redirect(url_for('login'))
 
         login_user(user, remember=form.remember_me.data)
@@ -287,28 +299,69 @@ def create_student():
         abort(403)
     form = StudentForm()
     if form.validate_on_submit():
-        # 创建新用户
-        user = User(username=form.student_id.data, email=f"{form.student_id.data}@example.com")
-        user.set_password("123456")  # 默认密码
+        # 如果没有提供学号，自动生成一个
+        if not form.student_id.data:
+            # 获取当前年份后两位
+            from datetime import datetime
+            year = datetime.now().strftime('%y')
+            # 查询当前年份的学生数量
+            count = Student.query.filter(Student.student_id.like(f'STU{year}%')).count()
+            # 生成新的学号，格式为STU+年份后两位+4位序号
+            student_id = f"STU{year}{count+1:04d}"
+        else:
+            student_id = form.student_id.data
+
+        # 检查学号是否已存在
+        if Student.query.filter_by(student_id=student_id).first():
+            flash('学号已存在，请重新输入', 'error')
+            return render_template('students/form.html', form=form, title='添加学生')
+
+        # 检查用户名是否已存在
+        existing_user = User.query.filter_by(username=student_id).first()
+        if existing_user:
+            # 检查是否有关联的学生记录
+            if not existing_user.student_info:
+                # 如果没有关联的学生记录，说明是已删除的学生，可以复用用户名
+                db.session.delete(existing_user)
+                db.session.commit()
+                flash('检测到已删除的学生记录，已清理相关数据', 'info')
+            else:
+                # 如果有关联的学生记录，说明学号已被使用
+                flash('学号已存在，请使用其他学号', 'error')
+                return render_template('students/form.html', form=form, title='添加学生')
+
+        # 固定使用默认密码123456
+        password = "123456"
+
+        try:
+            # 创建新用户
+            user = User(username=student_id, email=f"{student_id}@example.com", is_admin=False)
+            user.set_password(password)
         
-        # 添加到数据库并提交以获取用户ID
-        db.session.add(user)
-        db.session.commit()
+            # 用户已添加到会话中，无需再次添加
         
-        # 创建学生信息记录
-        student = Student(
-            user_id=user.id,
-            student_id=form.student_id.data,
-            name=form.name.data,
-            gender=form.gender.data,
-            birth_date=form.birth_date.data,
-            phone=form.phone.data,
-            address=form.address.data
-        )
-        db.session.add(student)
-        db.session.commit()
-        flash('学生信息已添加，初始密码为123456')
-        return redirect(url_for('list_students'))
+            # 创建学生信息记录
+            student = Student(
+                user=user,  # 使用关联对象而不是ID
+                student_id=student_id,
+                name=form.name.data,
+                gender=form.gender.data,
+                birth_date=form.birth_date.data,
+                phone=form.phone.data,
+                address=form.address.data
+            )
+
+            # 一次性添加到数据库
+            db.session.add(user)
+            db.session.add(student)
+            db.session.commit()
+            flash(f'学生信息已添加，学号为：{student_id}，登录密码为：{password}')
+            return redirect(url_for('list_students'))
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f'添加学生时出错: {str(e)}', 'error')
+            return render_template('students/form.html', form=form, title='添加学生')
     return render_template('students/form.html', form=form, title='添加学生')
 
 @app.route('/admin/students/<int:student_id>/edit', methods=['GET', 'POST'])
@@ -331,10 +384,39 @@ def edit_student(student_id):
         student.birth_date = form.birth_date.data
         student.phone = form.phone.data
         student.address = form.address.data
+
+        # 如果提供了新密码，更新密码
+        if form.password.data:
+            student.user.set_password(form.password.data)
+            flash('学生信息和密码已更新')
+        else:
+            flash('学生信息已更新')
+
         db.session.commit()
-        flash('学生信息已更新')
         return redirect(url_for('list_students'))
     return render_template('students/form.html', form=form, title='编辑学生')
+
+@app.route('/admin/students/<int:student_id>/password', methods=['GET', 'POST'])
+@login_required
+def change_student_password(student_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    student = Student.query.get_or_404(student_id)
+
+    # 检查关联的用户是否是管理员
+    if student.user and student.user.is_admin:
+        flash('不能修改管理员的密码！', 'error')
+        return redirect(url_for('list_students'))
+
+    form = PasswordForm()
+    if form.validate_on_submit():
+        student.user.set_password(form.password.data)
+        db.session.commit()
+        flash(f'{student.name}的密码已成功修改')
+        return redirect(url_for('list_students'))
+
+    return render_template('students/password.html', form=form, student=student, title='修改学生密码')
 
 @app.route('/admin/students/<int:student_id>/delete', methods=['POST'])
 @login_required
@@ -348,9 +430,26 @@ def delete_student(student_id):
         flash('不能删除管理员的学生信息！', 'error')
         return redirect(url_for('list_students'))
     
+    # 获取关联的用户ID，以便后续删除
+    user_id = student.user_id if student.user else None
+
+    # 删除学生的成绩记录
+    Grade.query.filter_by(student_id=student.id).delete()
+
+    # 删除学生的选课记录
+    student.courses = []  # 清空关联的课程
+
+    # 删除学生记录
     db.session.delete(student)
+
+    # 如果有关联的用户，也删除用户记录
+    if user_id:
+        user = User.query.get(user_id)
+        if user:
+            db.session.delete(user)
+
     db.session.commit()
-    flash('学生信息已删除')
+    flash('学生信息及相关账户已删除')
     return redirect(url_for('list_students'))
 
 # 课程管理
@@ -424,7 +523,8 @@ def create_grade():
     if not current_user.is_admin:
         abort(403)
     form = GradeForm()
-    form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.all()]
+    # 只列出非管理员用户对应的学生，排除关联管理员（如 admin1）
+    form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.join(User).filter(User.is_admin == False).all()]
     form.course_id.choices = [(c.id, f"{c.course_name} ({c.course_code})") for c in Course.query.all()]
 
     if form.validate_on_submit():
@@ -448,7 +548,8 @@ def edit_grade(grade_id):
         abort(403)
     grade = Grade.query.get_or_404(grade_id)
     form = GradeForm(obj=grade)
-    form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.all()]
+    # 只列出非管理员用户对应的学生，排除关联管理员（如 admin1）
+    form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.join(User).filter(User.is_admin == False).all()]
     form.course_id.choices = [(c.id, f"{c.course_name} ({c.course_code})") for c in Course.query.all()]
 
     if form.validate_on_submit():
@@ -567,6 +668,44 @@ def my_grades():
 
     grades = Grade.query.filter_by(student_id=student.id).all()
     return render_template('my_grades.html', grades=grades)
+
+# 管理员修改密码
+@app.route('/admin/change_password', methods=['GET', 'POST'])
+@login_required
+def admin_change_password():
+    # 确保只有管理员可以访问
+    if not current_user.is_admin:
+        abort(403)
+    
+    form = PasswordForm()
+    if form.validate_on_submit():
+        current_user.set_password(form.password.data)
+        db.session.commit()
+        flash('密码已成功修改，请重新登录！')
+        # 修改密码后强制退出登录
+        logout_user()
+        return redirect(url_for('login'))
+    
+    return render_template('admin_change_password.html', form=form, title='修改密码')
+
+# 学生修改密码
+@app.route('/change_password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    # 确保只有学生（非管理员）可以访问
+    if current_user.is_admin:
+        abort(403)
+    
+    form = PasswordForm()
+    if form.validate_on_submit():
+        current_user.set_password(form.password.data)
+        db.session.commit()
+        flash('密码已成功修改，请重新登录！')
+        # 修改密码后强制退出登录
+        logout_user()
+        return redirect(url_for('login'))
+    
+    return render_template('change_password.html', form=form, title='修改密码')
 
 # 初始化数据库和创建管理员
 def init_db():
