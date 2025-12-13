@@ -21,6 +21,11 @@ class RegistrationForm(FlaskForm):
     ])
     password2 = PasswordField('确认密码', validators=[
         DataRequired(), EqualTo('password', message='密码不匹配')])
+
+    # 添加院系和专业下拉框
+    department_id = SelectField('院系', coerce=int, validators=[DataRequired()])
+    major_id = SelectField('专业', coerce=int, validators=[Optional()])
+
     submit = SubmitField('注册')
 
     def validate_username(self, field):
@@ -36,6 +41,9 @@ class StudentForm(FlaskForm):
                             description="留空则自动生成")
     name = StringField('姓名', validators=[DataRequired(), Length(1, 50)])
     gender = SelectField('性别', choices=[('男', '男'), ('女', '女')], validators=[Optional()])
+    # 添加院系和专业字段
+    department_id = SelectField('院系', coerce=int, validators=[Optional()])
+    major_id = SelectField('专业', coerce=int, validators=[Optional()])
     birth_date = DateField('出生日期', validators=[Optional()])
     phone = StringField('电话', validators=[Optional(), Length(max=20)])
     address = StringField('地址', validators=[Optional(), Length(max=200)])
@@ -82,6 +90,12 @@ class DepartmentForm(FlaskForm):
     dean = StringField('院长', validators=[Optional(), Length(1, 50)])
     office_location = StringField('办公室位置', validators=[Optional(), Length(max=100)])
     phone = StringField('联系电话', validators=[Optional(), Length(max=20)])
+
+class MajorForm(FlaskForm):
+    major_code = StringField('专业代码', validators=[DataRequired(), Length(1, 20)])
+    major_name = StringField('专业名称', validators=[DataRequired(), Length(1, 100)])
+    dept_id = SelectField('所属院系', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('提交')
 
 class AdminForm(FlaskForm):
     username = StringField('用户名', validators=[

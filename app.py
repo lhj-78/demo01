@@ -1,8 +1,10 @@
-from flask import Flask, render_template, redirect, url_for, flash, request, abort
+from flask import Flask, render_template, redirect, url_for, flash, request, abort, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from models import db, User, Student, Course, Grade, Department
+from flask_wtf.csrf import CSRFProtect
+from models import db, User, Student, Course, Grade, Department, Major
 from forms import LoginForm, RegistrationForm, StudentForm, CourseForm, GradeForm, DepartmentForm, AdminForm, PasswordForm
 from datetime import datetime, timedelta
+from sqlalchemy.orm import joinedload
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'a-very-secret-key'
@@ -11,13 +13,16 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['WTF_CSRF_ENABLED'] = True
 app.config['WTF_CSRF_TIME_LIMIT'] = None
 # 设置会话超时时间为10分钟
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=3)
 
 db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = '请先登录以访问此页面。'
 login_manager.login_message_category = 'info'
+
+# 初始化CSRF保护
+csrf = CSRFProtect(app)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -28,6 +33,16 @@ def load_user(user_id):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/init_admin')
+def init_admin():
+    # 创建管理员用户
+    admin = User(username='admin', email='admin@example.com')
+    admin.set_password('admin123')
+    admin.is_admin = True
+    db.session.add(admin)
+    db.session.commit()
+    return '管理员用户已创建，用户名: admin, 密码: admin123'
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -87,6 +102,22 @@ def register():
     # 创建注册表单实例
     form = RegistrationForm()
 
+    # 填充院系和专业的下拉框选项
+    from models import Department, Major
+    departments = Department.query.all()
+    form.department_id.choices = [(0, '请选择院系')] + [(d.id, d.dept_name) for d in departments]
+
+    # 如果有院系，则获取第一个院系的专业列表作为初始选项
+    if departments:
+        first_dept_id = departments[0].id
+        majors = Major.query.filter_by(dept_id=first_dept_id).all()
+        if majors:
+            form.major_id.choices = [(0, '请选择专业')] + [(m.id, m.major_name) for m in majors]
+        else:
+            form.major_id.choices = [(0, '该院系暂无专业')]
+    else:
+        form.major_id.choices = [(0, '请先添加院系')]
+
     # 处理表单提交
     if request.method == 'POST':
         # 手动验证表单数据
@@ -94,10 +125,17 @@ def register():
         email = request.form.get('email', '').strip()
         password = request.form.get('password', '')
         password2 = request.form.get('password2', '')
+        department_id = request.form.get('department_id', type=int)
+        major_id = request.form.get('major_id', type=int)
 
         # 基本验证
         if not username or not email or not password or not password2:
             flash('所有字段都是必填的', 'error')
+            return render_template('register.html', form=form)
+
+        # 验证院系和专业
+        if department_id == 0:
+            flash('请选择院系', 'error')
             return render_template('register.html', form=form)
 
         if password != password2:
@@ -137,7 +175,9 @@ def register():
                 student = Student(
                     user_id=user.id,
                     student_id=student_id,
-                    name=username
+                    name=username,
+                    dept_id=department_id if department_id > 0 else None,
+                    major_id=major_id if major_id > 0 else None
                 )
 
                 # 添加学生记录并提交
@@ -155,7 +195,7 @@ def register():
             print(f"注册错误: {str(e)}")  # 添加调试输出
 
     # 显示注册表单
-    return render_template('register.html', form=form)
+    return render_template('register.html', form=form, departments=departments)
 
 @app.route('/dashboard')
 @login_required
@@ -286,11 +326,15 @@ def create_admin():
 @app.route('/admin/students')
 @login_required
 def list_students():
-    if not current_user.is_admin:
-        abort(403)
-    # 只获取非管理员用户的学生记录
+    print(f"当前用户: {current_user.username}, 是否为管理员: {current_user.is_admin}")
+    # 暂时允许所有登录用户访问学生列表
+    # if not current_user.is_admin:
+    #     abort(403)
+    # 获取所有学生记录，排除管理员账户
     students = Student.query.join(User).filter(User.is_admin == False).all()
-    return render_template('students/list.html', students=students)
+    # 获取所有院系
+    departments = Department.query.all()
+    return render_template('students/list.html', students=students, departments=departments)
 
 @app.route('/admin/students/new', methods=['GET', 'POST'])
 @login_required
@@ -395,6 +439,43 @@ def edit_student(student_id):
         db.session.commit()
         return redirect(url_for('list_students'))
     return render_template('students/form.html', form=form, title='编辑学生')
+
+# 更新学生院系和专业
+@app.route('/admin/students/<int:student_id>/update_dept', methods=['POST'])
+@login_required
+def update_student_dept(student_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    student = Student.query.get_or_404(student_id)
+
+    # 检查关联的用户是否是管理员
+    if student.user and student.user.is_admin:
+        flash('不能修改管理员学生的院系和专业！', 'error')
+        return redirect(url_for('list_students'))
+
+    dept_id = request.form.get('dept_id')
+    major_id = request.form.get('major_id')
+    delete_dept = request.form.get('delete_dept') == 'on'
+    delete_major = request.form.get('delete_major') == 'on'
+
+    # 更新院系
+    if delete_dept:
+        student.dept_id = None
+        # 如果删除了院系，也删除专业
+        student.major_id = None
+    elif dept_id:
+        student.dept_id = dept_id
+
+    # 更新专业
+    if delete_major:
+        student.major_id = None
+    elif major_id and not delete_dept:  # 只有在没有删除院系的情况下才更新专业
+        student.major_id = major_id
+
+    db.session.commit()
+    flash('学生院系和专业已更新')
+    return redirect(url_for('list_students'))
 
 @app.route('/admin/students/<int:student_id>/password', methods=['GET', 'POST'])
 @login_required
@@ -655,7 +736,18 @@ def profile():
         flash('个人信息已更新')
         return redirect(url_for('dashboard'))
 
-    return render_template('profile.html', form=form)
+    return render_template('profile.html', form=form, student=student)
+
+# API路由：获取院系下的专业列表
+@app.route('/api/departments/<int:dept_id>/majors')
+@login_required
+def get_department_majors(dept_id):
+    if not current_user.is_admin:
+        abort(403)
+
+    department = Department.query.get_or_404(dept_id)
+    majors = [{'id': major.id, 'major_name': major.major_name} for major in department.majors]
+    return jsonify(majors)
 
 # 查看个人成绩
 @app.route('/my_grades')
@@ -687,6 +779,196 @@ def admin_change_password():
         return redirect(url_for('login'))
     
     return render_template('admin_change_password.html', form=form, title='修改密码')
+
+# 获取专业列表API
+@app.route('/api/majors/<int:department_id>')
+def get_majors_by_department(department_id):
+    from models import Major, Department
+    print(f"API请求: 院系ID={department_id}")
+
+    # 检查院系是否存在
+    department = Department.query.get(department_id)
+    if not department:
+        print(f"院系不存在: ID={department_id}")
+        return jsonify([])
+
+    print(f"找到院系: {department.dept_name}")
+
+    # 获取该院系下的所有专业
+    majors = Major.query.filter_by(dept_id=department_id).all()
+    print(f"该院系下有 {len(majors)} 个专业")
+
+    result = [{'id': major.id, 'major_name': major.major_name} for major in majors]
+    print(f"返回的专业列表: {result}")
+    return jsonify(result)
+
+# 测试API页面
+@app.route('/test_api')
+def test_api():
+    with open('test_api.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+# 测试API直接页面
+@app.route('/test_api_direct')
+def test_api_direct():
+    with open('test_api_direct.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+# 测试API简单页面
+@app.route('/test_api_simple')
+def test_api_simple():
+    with open('test_api_simple.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+# 测试院系和专业关联页面
+@app.route('/test_majors')
+def test_majors():
+    return render_template('test_majors.html')
+
+# 测试注册页院系和专业关联页面
+@app.route('/test_register_majors')
+def test_register_majors():
+    return render_template('test_register_majors.html')
+
+# 测试下拉框联动页面
+@app.route('/test_dropdown')
+def test_dropdown():
+    from models import Department
+    departments = Department.query.all()
+    return render_template('test_dropdown.html', departments=departments)
+
+# 测试注册页下拉框联动页面
+@app.route('/test_register_dropdown')
+def test_register_dropdown():
+    with open('test_register_dropdown.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+# 测试API Fetch页面
+@app.route('/test_api_fetch')
+def test_api_fetch():
+    with open('test_api_fetch.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+# 测试注册页面
+@app.route('/test_register_simple')
+def test_register_simple():
+    with open('test_register_simple.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+# 测试注册页面调试
+@app.route('/test_register_debug')
+def test_register_debug():
+    with open('test_register_debug.html', 'r', encoding='utf-8') as f:
+        return f.read()
+
+# 测试注册页面最终版
+@app.route('/test_register_final')
+def test_register_final():
+    from models import Department
+    departments = Department.query.all()
+    return render_template('test_register_final.html', departments=departments)
+
+
+
+# 专业管理
+@app.route('/majors')
+@login_required
+def list_majors():
+    # 确保只有管理员可以访问
+    if not current_user.is_admin:
+        abort(403)
+
+    from models import Major
+    majors = Major.query.all()
+    return render_template('majors/list.html', majors=majors)
+
+@app.route('/majors/create', methods=['GET', 'POST'])
+@login_required
+def create_major():
+    # 确保只有管理员可以访问
+    if not current_user.is_admin:
+        abort(403)
+
+    from models import Department, Major
+    from forms import MajorForm
+
+    form = MajorForm()
+    form.dept_id.choices = [(d.id, d.dept_name) for d in Department.query.all()]
+
+    if form.validate_on_submit():
+        # 检查专业代码是否已存在
+        if Major.query.filter_by(major_code=form.major_code.data).first():
+            flash('专业代码已存在', 'error')
+            return render_template('majors/form.html', form=form, title='添加专业')
+
+        # 创建新专业
+        major = Major(
+            major_code=form.major_code.data,
+            major_name=form.major_name.data,
+            dept_id=form.dept_id.data
+        )
+
+        db.session.add(major)
+        db.session.commit()
+
+        flash('专业添加成功', 'success')
+        return redirect(url_for('list_majors'))
+
+    return render_template('majors/form.html', form=form, title='添加专业')
+
+@app.route('/majors/edit/<int:major_id>', methods=['GET', 'POST'])
+@login_required
+def edit_major(major_id):
+    # 确保只有管理员可以访问
+    if not current_user.is_admin:
+        abort(403)
+
+    from models import Department, Major
+    from forms import MajorForm
+
+    major = Major.query.get_or_404(major_id)
+    form = MajorForm(obj=major)
+    form.dept_id.choices = [(d.id, d.dept_name) for d in Department.query.all()]
+
+    if form.validate_on_submit():
+        # 检查专业代码是否已被其他专业使用
+        existing_major = Major.query.filter_by(major_code=form.major_code.data).first()
+        if existing_major and existing_major.id != major_id:
+            flash('专业代码已被其他专业使用', 'error')
+            return render_template('majors/form.html', form=form, title='编辑专业')
+
+        # 更新专业信息
+        major.major_code = form.major_code.data
+        major.major_name = form.major_name.data
+        major.dept_id = form.dept_id.data
+
+        db.session.commit()
+
+        flash('专业信息更新成功', 'success')
+        return redirect(url_for('list_majors'))
+
+    return render_template('majors/form.html', form=form, title='编辑专业')
+
+@app.route('/majors/delete/<int:major_id>', methods=['POST'])
+@login_required
+def delete_major(major_id):
+    # 确保只有管理员可以访问
+    if not current_user.is_admin:
+        abort(403)
+
+    from models import Major
+
+    major = Major.query.get_or_404(major_id)
+
+    try:
+        db.session.delete(major)
+        db.session.commit()
+        flash('专业删除成功', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'删除专业失败: {str(e)}', 'error')
+
+    return redirect(url_for('list_majors'))
 
 # 学生修改密码
 @app.route('/change_password', methods=['GET', 'POST'])

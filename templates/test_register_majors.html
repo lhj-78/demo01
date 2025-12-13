@@ -1,0 +1,47 @@
+
+{% extends "base.html" %}
+
+{% block title %}测试注册页院系和专业关联 - 学生信息管理系统{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">测试注册页院系和专业关联</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="department_id" class="form-label">院系</label>
+                    <select class="form-select" id="department_id" onchange="loadMajors(this.value)">
+                        <option value="0">请选择院系</option>
+                        <option value="1">计算机科学系</option>
+                        <option value="2">电子工程系</option>
+                        <option value="3">电气工程院系</option>
+                        <option value="4">文学院</option>
+                        <option value="5">数学系</option>
+                        <option value="6">物理系</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="major_id" class="form-label">专业</label>
+                    <select class="form-select" id="major_id" onchange="console.log('专业选择已改变:', this.value)">
+                        <option value="0">请先选择院系</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-primary" onclick="loadMajors(document.getElementById('department_id').value)">
+                        手动加载专业
+                    </button>
+                    <a href="/test_api_simple" class="btn btn-secondary">测试API</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -30,6 +30,8 @@
                         <th>学号</th>
                         <th>姓名</th>
                         <th>性别</th>
+                        <th>院系</th>
+                        <th>专业</th>
                         <th>出生日期</th>
                         <th>电话</th>
                         <th>地址</th>
@@ -42,6 +44,8 @@
                         <td>{{ student.student_id }}</td>
                         <td>{{ student.name }}</td>
                         <td>{{ student.gender or '-' }}</td>
+                        <td>{{ student.department.dept_name if student.department else '-' }}</td>
+                        <td>{{ student.major.major_name if student.major else '-' }}</td>
                         <td>{{ student.birth_date.strftime('%Y-%m-%d') if student.birth_date else '-' }}</td>
                         <td>{{ student.phone or '-' }}</td>
                         <td>{{ student.address or '-' }}</td>
@@ -50,9 +54,9 @@
                                 <a href="{{ url_for('edit_student', student_id=student.id) }}" class="btn btn-primary btn-sm">
                                     <i class="fas fa-edit"></i> 编辑
                                 </a>
-                                <a href="{{ url_for('change_student_password', student_id=student.id) }}" class="btn btn-warning btn-sm">
-                                    <i class="fas fa-key"></i> 修改密码
-                                </a>
+                                <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#deptModal{{ student.id }}">
+                                    <i class="fas fa-building"></i> 院系专业
+                                </button>
                                 <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal{{ student.id }}">
                                     <i class="fas fa-trash"></i> 删除
                                 </button>
@@ -70,6 +74,57 @@
         {% endif %}
     </div>
 </div>
+
+<!-- 修改院系和专业模态框 -->
+{% for student in students %}
+<div class="modal fade" id="deptModal{{ student.id }}" tabindex="-1" aria-labelledby="deptModalLabel{{ student.id }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deptModalLabel{{ student.id }}">修改院系和专业</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('update_student_dept', student_id=student.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="mb-3">
+                        <label for="dept_id_{{ student.id }}" class="form-label">院系</label>
+                        <select class="form-select" id="dept_id_{{ student.id }}" name="dept_id" required>
+                            <option value="">请选择院系</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}" {% if student.dept_id == dept.id %}selected{% endif %}>{{ dept.dept_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="major_id_{{ student.id }}" class="form-label">专业</label>
+                        <select class="form-select" id="major_id_{{ student.id }}" name="major_id">
+                            <option value="">请选择专业</option>
+                            {% if student.department %}
+                                {% for major in student.department.majors %}
+                                <option value="{{ major.id }}" {% if student.major_id == major.id %}selected{% endif %}>{{ major.major_name }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="delete_dept_{{ student.id }}" name="delete_dept">
+                        <label class="form-check-label" for="delete_dept_{{ student.id }}">删除院系信息</label>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="delete_major_{{ student.id }}" name="delete_major">
+                        <label class="form-check-label" for="delete_major_{{ student.id }}">删除专业信息</label>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
 
 <!-- 删除确认模态框 -->
 {% for student in students %}
@@ -93,4 +148,43 @@
     </div>
 </div>
 {% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 为每个院系下拉框添加change事件监听器
+    {% for student in students %}
+    const deptSelect{{ student.id }} = document.getElementById('dept_id_{{ student.id }}');
+    const majorSelect{{ student.id }} = document.getElementById('major_id_{{ student.id }}');
+
+    if (deptSelect{{ student.id }}) {
+        deptSelect{{ student.id }}.addEventListener('change', function() {
+            const deptId = this.value;
+
+            // 清空专业下拉框
+            majorSelect{{ student.id }}.innerHTML = '<option value="">请选择专业</option>';
+
+            if (deptId) {
+                // 发送AJAX请求获取该院系的专业列表
+                fetch(`/api/departments/${deptId}/majors`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // 添加专业选项
+                        data.forEach(major => {
+                            const option = document.createElement('option');
+                            option.value = major.id;
+                            option.textContent = major.major_name;
+                            majorSelect{{ student.id }}.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        });
+    }
+    {% endfor %}
+});
+</script>
 {% endblock %}

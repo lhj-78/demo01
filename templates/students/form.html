@@ -48,6 +48,28 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
+                        {{ form.department_id.label(class="form-label") }}
+                        {{ form.department_id(class="form-select") }}
+                        {% if form.department_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.department_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.major_id.label(class="form-label") }}
+                        {{ form.major_id(class="form-select") }}
+                        {% if form.major_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.major_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
                         {{ form.birth_date.label(class="form-label") }}
                         {{ form.birth_date(class="form-control") }}
                         {% if form.birth_date.errors %}
@@ -82,7 +104,7 @@
                     </div>
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control", placeholder="留空则不修改密码") }}
+                        {{ form.password(class="form-control", placeholder="留空则使用默认密码") }}
                         {% if form.password.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.password.errors %}
@@ -93,7 +115,7 @@
                     </div>
                     <div class="mb-3">
                         {{ form.password2.label(class="form-label") }}
-                        {{ form.password2(class="form-control", placeholder="留空则不修改密码") }}
+                        {{ form.password2(class="form-control", placeholder="留空则使用默认密码") }}
                         {% if form.password2.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.password2.errors %}
