@@ -69,6 +69,14 @@
                         {% endif %}
                     </div>
                     <div class="mb-3">
+                        <label class="form-label">院系</label>
+                        <input type="text" class="form-control" value="{{ student.department.dept_name if student and student.department else '' }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">专业</label>
+                        <input type="text" class="form-control" value="{{ student.major.major_name if student and student.major else '' }}" readonly>
+                    </div>
+                    <div class="mb-3">
                         {{ form.address.label(class="form-label") }}
                         {{ form.address(class="form-control") }}
                         {% if form.address.errors %}

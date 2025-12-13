@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}学生信息管理系统{% endblock %}</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -23,7 +24,8 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             padding: 1rem 0;
             background: linear-gradient(135deg, #4a00e0, #00bfff) !important;
-            position: fixed;
+            margin-bottom: 10px; /* 保留main分支的下外边距 */
+            position: fixed;      /* 保留dev分支的固定定位 */
             top: 0;
             width: 100%;
             z-index: 1030;
@@ -320,6 +322,7 @@
                                 <li><a class="dropdown-item" href="{{ url_for('list_courses') }}">课程管理</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('list_grades') }}">成绩管理</a></li>
                                 <li><a class="dropdown-item" href="{{ url_for('list_departments') }}">院系管理</a></li>
+                                <li><a class="dropdown-item" href="{{ url_for('list_majors') }}">专业管理</a></li>
                             </ul>
                         </li>
                         {% endif %}

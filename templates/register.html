@@ -3,6 +3,14 @@
 
 {% block title %}注册 - 学生信息管理系统{% endblock %}
 
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center mt-5">
     <div class="col-md-6">
@@ -63,6 +71,35 @@
                         {% if form.password2.errors %}
                             <div class="invalid-feedback d-block">
                                 {% for error in form.password2.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="department_id" class="form-label">院系</label>
+                        <select class="form-select" id="department_id" name="department_id">
+                            <option value="0">请选择院系</option>
+                            {% for dept in departments %}
+                            <option value="{{ dept.id }}">{{ dept.dept_name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% if form.department_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.department_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label for="major_id" class="form-label">专业</label>
+                        <select class="form-select" id="major_id" name="major_id">
+                            <option value="0">请选择专业</option>
+                        </select>
+                        {% if form.major_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.major_id.errors %}
                                     <span>{{ error }}</span>
                                 {% endfor %}
                             </div>

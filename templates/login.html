@@ -94,13 +94,11 @@
     margin-top: 0.3rem;
 }
 
-/* 右侧登录表单 */
+/* 登录表单容器 */
 .login-form-container {
-    background: #f8f9fa;
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
 }
 
 .login-form {
@@ -109,7 +107,6 @@
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     width: 100%;
-    max-width: 400px;
 }
 
 .login-form h2 {
@@ -173,44 +170,7 @@
 }
 </style>
 
-<div class="container-fluid p-0 d-flex">
-    <!-- 左侧：品牌与功能展示 -->
-    <div class="bg-gradient flex-grow-1 d-flex flex-column justify-content-center align-items-center px-5 py-5">
-        <div class="brand-section">
-            <!-- 使用 SVG 替代 logo.png -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="white" viewBox="0 0 16 16">
-                <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z"/>
-            </svg>
-            <h1 class="brand-title">高校学生成绩管理系统</h1>
-            <p class="brand-subtitle">Student Grade Management System</p>
-        </div>
-
-        <div class="d-flex flex-column gap-3 w-100" style="max-width: 300px;">
-            <div class="feature-card">
-                <i class="fas fa-chart-bar feature-icon"></i>
-                <div>
-                    <h5 class="feature-text">智能分析</h5>
-                    <p class="feature-desc">多维度成绩统计与分析</p>
-                </div>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-users feature-icon"></i>
-                <div>
-                    <h5 class="feature-text">协同管理</h5>
-                    <p class="feature-desc">教师学生协同管理平台</p>
-                </div>
-            </div>
-            <div class="feature-card">
-                <i class="fas fa-shield-alt feature-icon"></i>
-                <div>
-                    <h5 class="feature-text">系统安全</h5>
-                    <p class="feature-desc">企业级安全保障体系</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 右侧：登录表单 -->
+<div class="container-fluid p-0 d-flex justify-content-center align-items-center bg-gradient" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1020;">
     <div class="login-form-container">
         <div class="login-form">
             <h2>欢迎登录</h2>
@@ -250,19 +210,6 @@
                 </div>
 
                 <button type="submit" class="btn-login">登录</button>
-
-                <!-- 演示账号 -->
-                <div class="demo-accounts">
-                    <p class="mb-2"><strong>演示账号</strong></p>
-                    <div class="demo-account">
-                        <span class="demo-role admin">管理员</span>
-                        <span class="demo-username">admin / admin123</span>
-                    </div>
-                    <div class="demo-account">
-                        <span class="demo-role teacher">教师</span>
-                        <span class="demo-username">teacher / teacher123</span>
-                    </div>
-                </div>
             </form>
         </div>
     </div>

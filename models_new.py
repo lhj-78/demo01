@@ -49,9 +49,6 @@ class Student(db.Model):
     dept_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True)
     major_id = db.Column(db.Integer, db.ForeignKey('major.id'), nullable=True)
 
-    # 关联到院系
-    department = db.relationship('Department', backref='students', foreign_keys=[dept_id])
-
     # 关联到课程
     courses = db.relationship('Course', secondary='student_course', backref='students')
 
