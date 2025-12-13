@@ -30,6 +30,7 @@
                         <th>课程代码</th>
                         <th>课程名称</th>
                         <th>学分</th>
+                        <th>所属专业</th>
                         <th>课程描述</th>
                         <th>操作</th>
                     </tr>
@@ -40,6 +41,7 @@
                         <td>{{ course.course_code }}</td>
                         <td>{{ course.course_name }}</td>
                         <td>{{ course.credit }}</td>
+                        <td>{{ course.major.major_name if course.major else '通用课程' }}</td>
                         <td>{{ course.description[:50] + '...' if course.description and course.description|length > 50 else (course.description or '-') }}</td>
                         <td>
                             <div class="btn-group" role="group">

@@ -1,8 +1,9 @@
 from flask import Flask, render_template, redirect, url_for, flash, request, abort, jsonify
+from flask_wtf.csrf import generate_csrf, CSRFError, CSRFProtect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from flask_wtf.csrf import CSRFProtect
 from models import db, User, Student, Course, Grade, Department, Major
 from forms import LoginForm, RegistrationForm, StudentForm, CourseForm, GradeForm, DepartmentForm, AdminForm, PasswordForm
+from course_selection_form import CourseSelectionForm
 from datetime import datetime, timedelta
 from sqlalchemy.orm import joinedload
 
@@ -23,6 +24,11 @@ login_manager.login_message_category = 'info'
 
 # 初始化CSRF保护
 csrf = CSRFProtect(app)
+
+# 添加csrf_token函数到模板上下文
+@app.context_processor
+def inject_csrf_token():
+    return dict(csrf_token=generate_csrf)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -204,12 +210,7 @@ def dashboard():
     student = Student.query.filter_by(user_id=current_user.id).first()
     return render_template('user_dashboard.html', student=student)
 
-@app.route('/schedule')
-@login_required
-def schedule():
-    # 课表页面
-    student = Student.query.filter_by(user_id=current_user.id).first()
-    return render_template('student_schedule_final.html', student=student)
+
 
 @app.route('/admin/dashboard')
 @login_required
@@ -580,12 +581,18 @@ def create_course():
     if not current_user.is_admin:
         abort(403)
     form = CourseForm()
+    # 填充专业下拉框选项
+    from models import Major
+    majors = Major.query.all()
+    form.major_id.choices = [(0, '请选择专业')] + [(m.id, m.major_name) for m in majors]
+    
     if form.validate_on_submit():
         course = Course(
             course_code=form.course_code.data,
             course_name=form.course_name.data,
             credit=form.credit.data,
-            description=form.description.data
+            description=form.description.data,
+            major_id=form.major_id.data if form.major_id.data != 0 else None
         )
         db.session.add(course)
         db.session.commit()
@@ -600,11 +607,18 @@ def edit_course(course_id):
         abort(403)
     course = Course.query.get_or_404(course_id)
     form = CourseForm(obj=course)
+    
+    # 填充专业下拉框选项
+    from models import Major
+    majors = Major.query.all()
+    form.major_id.choices = [(0, '请选择专业')] + [(m.id, m.major_name) for m in majors]
+    
     if form.validate_on_submit():
         course.course_code = form.course_code.data
         course.course_name = form.course_name.data
         course.credit = form.credit.data
         course.description = form.description.data
+        course.major_id = form.major_id.data if form.major_id.data != 0 else None
         db.session.commit()
         flash('课程信息已更新')
         return redirect(url_for('list_courses'))
@@ -627,8 +641,80 @@ def delete_course(course_id):
 def list_grades():
     if not current_user.is_admin:
         abort(403)
-    grades = Grade.query.all()
-    return render_template('grades/list.html', grades=grades)
+    # 按学生分组成绩
+    from sqlalchemy.orm import joinedload
+    
+    # 使用更高效的查询方式，一次性获取所有成绩及其关联的学生和课程
+    grades = Grade.query.options(joinedload(Grade.student), joinedload(Grade.course)).all()
+    
+    # 创建一个字典，以学生ID为键，值为该学生的成绩列表
+    student_grades_map = {}
+    for grade in grades:
+        if grade.student_id not in student_grades_map:
+            student_grades_map[grade.student_id] = []
+        student_grades_map[grade.student_id].append(grade)
+    
+    # 获取所有学生及其课程
+    students = Student.query.options(joinedload(Student.courses)).all()
+    
+    # 为每个学生获取成绩信息
+    students_with_grades = []  # 有成绩的学生
+    students_without_grades = []  # 没有成绩的学生
+    
+    for student in students:
+        student_info = {'student': student, 'courses_with_grades': []}
+        has_grade = False  # 标记学生是否有成绩
+        
+        # 创建一个集合，存储学生已选择的课程ID
+        selected_course_ids = {course.id for course in student.courses}
+        
+        # 获取学生已选择的课程
+        for course in student.courses:
+            # 从预先加载的成绩字典中查找该课程的成绩记录
+            grade = None
+            if student.id in student_grades_map:
+                for g in student_grades_map[student.id]:
+                    if g.course_id == course.id:
+                        grade = g
+                        break
+            
+            course_data = {
+                'course': course,
+                'grade': grade
+            }
+            student_info['courses_with_grades'].append(course_data)
+            
+            # 如果有成绩记录且成绩不为空，标记为有成绩
+            if grade and grade.score is not None:
+                has_grade = True
+        
+        # 添加有成绩但学生未选择的课程
+        if student.id in student_grades_map:
+            for grade in student_grades_map[student.id]:
+                if grade.course_id not in selected_course_ids:
+                    # 添加未选择但有成绩的课程
+                    course_data = {
+                        'course': grade.course,
+                        'grade': grade
+                    }
+                    student_info['courses_with_grades'].append(course_data)
+                    
+                    # 如果有成绩记录且成绩不为空，标记为有成绩
+                    if grade.score is not None:
+                        has_grade = True
+        
+        # 根据是否有成绩将学生添加到相应列表
+        if has_grade:
+            students_with_grades.append(student_info)
+        else:
+            students_without_grades.append(student_info)
+    
+    # 合并列表，有成绩的学生在前
+    students_data = students_with_grades + students_without_grades
+    
+    from forms import GradeForm
+    form = GradeForm()
+    return render_template('grades/list.html', students_data=students_data, form=form)
 
 @app.route('/admin/grades/new', methods=['GET', 'POST'])
 @login_required
@@ -636,21 +722,47 @@ def create_grade():
     if not current_user.is_admin:
         abort(403)
     form = GradeForm()
+    
+    # 获取URL参数中的学生ID和课程ID
+    student_id = request.args.get('student_id', type=int)
+    course_id = request.args.get('course_id', type=int)
+    
     # 只列出非管理员用户对应的学生，排除关联管理员（如 admin1）
     form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.join(User).filter(User.is_admin == False).all()]
     form.course_id.choices = [(c.id, f"{c.course_name} ({c.course_code})") for c in Course.query.all()]
+    
+    # 如果有URL参数，设置表单默认值
+    if student_id:
+        form.student_id.data = student_id
+    if course_id:
+        form.course_id.data = course_id
 
     if form.validate_on_submit():
-        grade = Grade(
+        # 检查是否已存在该学生该课程的成绩记录
+        existing_grade = Grade.query.filter_by(
             student_id=form.student_id.data,
-            course_id=form.course_id.data,
-            score=form.score.data,
-            semester=form.semester.data,
-            exam_date=form.exam_date.data
-        )
-        db.session.add(grade)
+            course_id=form.course_id.data
+        ).first()
+        
+        if existing_grade:
+            # 如果已存在，更新成绩
+            existing_grade.score = form.score.data
+            existing_grade.semester = form.semester.data
+            existing_grade.exam_date = form.exam_date.data
+            flash('成绩已更新')
+        else:
+            # 如果不存在，创建新成绩
+            grade = Grade(
+                student_id=form.student_id.data,
+                course_id=form.course_id.data,
+                score=form.score.data,
+                semester=form.semester.data,
+                exam_date=form.exam_date.data
+            )
+            db.session.add(grade)
+            flash('成绩已添加')
+        
         db.session.commit()
-        flash('成绩已添加')
         return redirect(url_for('list_grades'))
     return render_template('grades/form.html', form=form, title='添加成绩')
 
@@ -682,9 +794,24 @@ def delete_grade(grade_id):
     if not current_user.is_admin:
         abort(403)
     grade = Grade.query.get_or_404(grade_id)
+    
+    # 获取学生和课程ID
+    student_id = grade.student_id
+    course_id = grade.course_id
+    
+    # 从student_course表中删除关联关系
+    from models import student_course
+    db.session.execute(
+        student_course.delete().where(
+            (student_course.c.student_id == student_id) & 
+            (student_course.c.course_id == course_id)
+        )
+    )
+    
+    # 删除成绩
     db.session.delete(grade)
     db.session.commit()
-    flash('成绩已删除')
+    flash('成绩已删除，学生与课程的关联关系也已解除')
     return redirect(url_for('list_grades'))
 
 # 院系管理
@@ -792,6 +919,101 @@ def my_grades():
 
     grades = Grade.query.filter_by(student_id=student.id).all()
     return render_template('my_grades.html', grades=grades)
+
+# 课程选择
+@app.route('/select_course', methods=['GET', 'POST'])
+@login_required
+def select_course():
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    if not student:
+        flash('请先完善个人信息')
+        return redirect(url_for('profile'))
+    
+    # 检查学生是否选择了专业
+    if not student.major_id:
+        flash('请先选择您的专业，然后再选择课程', 'warning')
+        return redirect(url_for('profile'))
+    
+    form = CourseSelectionForm()
+    # 获取学生已选择的课程
+    selected_courses = student.courses
+    
+    # 获取与学生专业相关的课程（专业为空的通用课程也可选）
+    major_courses = Course.query.filter((Course.major_id == student.major_id) | (Course.major_id.is_(None))).all()
+    # 筛选出学生未选择的课程
+    available_courses = [c for c in major_courses if c not in selected_courses]
+    
+    # 更新表单中的课程选项
+    form.course.choices = [(c.id, f"{c.course_name} ({c.course_code}){' - ' + c.major.major_name if c.major else ' - 通用课程'}") for c in available_courses]
+    
+    if form.validate_on_submit():
+        course_id = form.course.data
+        course = Course.query.get(course_id)
+        
+        if course and course not in selected_courses:
+            # 将课程添加到学生的课程列表
+            student.courses.append(course)
+            
+            # 不创建初始成绩记录，成绩将在管理员录入时创建
+            
+            db.session.commit()
+            flash(f'已成功选择课程: {course.course_name}')
+            return redirect(url_for('my_courses'))
+        else:
+            flash('选择课程失败，请重试')
+    
+    return render_template('select_course.html', form=form, selected_courses=selected_courses)
+
+# 我的课程
+@app.route('/my_courses')
+@login_required
+def my_courses():
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    if not student:
+        flash('请先完善个人信息')
+        return redirect(url_for('profile'))
+    
+    # 获取学生已选择的课程
+    selected_courses = student.courses
+    return render_template('my_courses.html', courses=selected_courses)
+
+# 退选课程
+@app.route('/drop_course/<int:course_id>', methods=['POST'])
+@login_required
+def drop_course(course_id):
+    student = Student.query.filter_by(user_id=current_user.id).first()
+    if not student:
+        flash('请先完善个人信息')
+        return redirect(url_for('profile'))
+    
+    course = Course.query.get_or_404(course_id)
+    
+    # 检查学生是否已选择此课程
+    if course not in student.courses:
+        flash('您未选择此课程，无法退选', 'error')
+        return redirect(url_for('my_courses'))
+    
+    # 检查是否有此课程的成绩记录
+    from models import Grade
+    grade = Grade.query.filter_by(student_id=student.id, course_id=course.id).first()
+    if grade and grade.score is not None:
+        flash(f'无法退选课程 {course.course_name}，因为已有成绩记录', 'error')
+        return redirect(url_for('my_courses'))
+    
+    try:
+        # 如果有成绩记录但成绩为空，删除成绩记录
+        if grade:
+            db.session.delete(grade)
+        
+        # 移除课程
+        student.courses.remove(course)
+        db.session.commit()
+        flash(f'已成功退选课程: {course.course_name}', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'退选课程时出错: {str(e)}', 'error')
+    
+    return redirect(url_for('my_courses'))
 
 # 管理员修改密码
 @app.route('/admin/change_password', methods=['GET', 'POST'])

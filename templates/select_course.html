@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}选择课程 - 学生信息管理系统{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h4>选择课程</h4>
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 您只能选择与您专业相关的课程和通用课程。
+                </div>
+                <div class="card-body">
+                    {% if selected_courses %}
+                    <h5 class="mb-3">已选择的课程：</h5>
+                    <div class="mb-4">
+                        <ul class="list-group">
+                            {% for course in selected_courses %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    {{ course.course_name }} ({{ course.course_code }})
+                                    <div class="text-muted small">{{ course.major.major_name if course.major else '通用课程' }}</div>
+                                </div>
+                                <span class="badge bg-primary rounded-pill">{{ course.credit }}学分</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        您还未选择任何课程
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    <h5 class="mb-3">添加新课程：</h5>
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.course.label(class="form-label") }}
+                            {{ form.course(class="form-select") }}
+                            {% if form.course.errors %}
+                            <div class="text-danger">
+                                {% for error in form.course.errors %}
+                                <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('my_courses') }}" class="btn btn-secondary">查看我的课程</a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">返回仪表板</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

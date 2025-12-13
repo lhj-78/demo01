@@ -65,6 +65,11 @@ class Course(db.Model):
     course_name = db.Column(db.String(100), nullable=False)
     credit = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
+    # 添加与专业的关联
+    major_id = db.Column(db.Integer, db.ForeignKey('major.id'), nullable=True)
+    
+    # 关联到专业
+    major = db.relationship('Major', backref='courses')
 
     def __repr__(self):
         return f'<Course {self.course_name}>'
@@ -82,7 +87,7 @@ class Grade(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    score = db.Column(db.Float, nullable=False)
+    score = db.Column(db.Float, nullable=True)
     exam_date = db.Column(db.Date, default=datetime.utcnow().date)
     semester = db.Column(db.String(20), nullable=False)
 

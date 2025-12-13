@@ -63,6 +63,8 @@ class CourseForm(FlaskForm):
     course_name = StringField('课程名称', validators=[DataRequired(), Length(1, 100)])
     credit = FloatField('学分', validators=[DataRequired(), NumberRange(min=0.1, max=10.0)])
     description = TextAreaField('课程描述', validators=[Optional()])
+    # 添加专业选择字段
+    major_id = SelectField('所属专业', coerce=int, validators=[Optional()])
     submit = SubmitField('提交')
 
 class PasswordForm(FlaskForm):
