@@ -532,6 +532,7 @@ def change_student_password(student_id):
 
 @app.route('/admin/students/<int:student_id>/delete', methods=['POST'])
 @login_required
+@csrf.exempt
 def delete_student(student_id):
     if not current_user.is_admin:
         abort(403)
