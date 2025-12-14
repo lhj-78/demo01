@@ -324,6 +324,36 @@ def create_admin():
     return render_template('admins/form.html', title='创建管理员')
 
 # 学生管理
+@app.route('/admin/search_student')
+@login_required
+def search_student():
+    if not current_user.is_admin:
+        abort(403)
+
+    student_id = request.args.get('student_id', '').strip()
+
+    if not student_id:
+        flash('请输入学号', 'warning')
+        return redirect(url_for('admin_dashboard'))
+
+    # 查询学生，排除管理员账户
+    student = Student.query.join(User).filter(
+        User.is_admin == False,
+        Student.student_id == student_id
+    ).first()
+
+    if not student:
+        flash(f'未找到学号为 {student_id} 的学生', 'warning')
+        return redirect(url_for('admin_dashboard'))
+
+    # 获取该学生的成绩记录
+    grades = Grade.query.filter_by(student_id=student.id).all()
+
+    # 获取学生已选择的课程
+    courses = student.courses
+
+    return render_template('students/detail.html', student=student, grades=grades, courses=courses)
+
 @app.route('/admin/students')
 @login_required
 def list_students():
