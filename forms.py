@@ -103,7 +103,6 @@ class ForgotPasswordForm(FlaskForm):
     student_id = StringField('学号', validators=[DataRequired(), Length(1, 20)])
     name = StringField('姓名', validators=[DataRequired(), Length(1, 50)])
     submit = SubmitField('重置密码')
-
 class AdminForm(FlaskForm):
     username = StringField('用户名', validators=[
         DataRequired(), Length(1, 64),

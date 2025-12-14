@@ -29,7 +29,6 @@ csrf = CSRFProtect(app)
 @app.context_processor
 def inject_csrf_token():
     return dict(csrf_token=generate_csrf)
-
 @login_manager.user_loader
 def load_user(user_id):
     if user_id is not None:
@@ -98,7 +97,6 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
-
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     form = ForgotPasswordForm()
@@ -250,10 +248,10 @@ def admin_dashboard():
     student_count = Student.query.join(User).filter(User.is_admin == False).count()
     course_count = Course.query.count()
 
-    return render_template('admin_dashboard.html', 
-                          admin_count=admin_count, 
-                          student_count=student_count, 
-                          course_count=course_count)
+    return render_template('admin_dashboard.html',
+                            admin_count=admin_count, 
+                            student_count=student_count, 
+                            course_count=course_count)
 
 # 管理员路由
 @app.route('/admin')
@@ -788,7 +786,6 @@ def create_grade():
     # 获取URL参数中的学生ID和课程ID
     student_id = request.args.get('student_id', type=int)
     course_id = request.args.get('course_id', type=int)
-    
     # 只列出非管理员用户对应的学生，排除关联管理员（如 admin1）
     form.student_id.choices = [(s.id, f"{s.name} ({s.student_id})") for s in Student.query.join(User).filter(User.is_admin == False).all()]
     form.course_id.choices = [(c.id, f"{c.course_name} ({c.course_code})") for c in Course.query.all()]
@@ -945,6 +942,7 @@ def profile():
         db.session.add(student)
         db.session.commit()
 
+
     # 获取院系列表
     departments = Department.query.all()
     
@@ -958,6 +956,7 @@ def profile():
         majors = Major.query.filter_by(dept_id=student.dept_id).all()
         if majors:
             form.major_id.choices = [(0, '请选择专业')] + [(m.id, m.major_name) for m in majors]
+
             if student.major_id:
                 form.major_id.data = student.major_id
     
@@ -984,6 +983,7 @@ def profile():
         if form.password.data:
             current_user.set_password(form.password.data)
             flash('个人信息和密码已更新，请重新登录！')
+
             db.session.commit()
             logout_user()
             return redirect(url_for('login'))
@@ -1121,7 +1121,6 @@ def drop_course(course_id):
         flash(f'退选课程时出错: {str(e)}', 'error')
     
     return redirect(url_for('my_courses'))
-
 # 管理员修改密码
 @app.route('/admin/change_password', methods=['GET', 'POST'])
 @login_required
