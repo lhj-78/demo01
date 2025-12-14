@@ -138,7 +138,7 @@
                                 <td>{{ grade.course.course_name }}</td>
                                 <td>{{ grade.course.credit }}</td>
                                 <td>
-                                    {% if grade.score is not None %}
+                                    {% if grade.score is not none %}
                                         <span class="badge {% if grade.score >= 90 %}bg-success{% elif grade.score >= 80 %}bg-primary{% elif grade.score >= 70 %}bg-info{% elif grade.score >= 60 %}bg-warning{% else %}bg-danger{% endif %}">
                                             {{ grade.score }}
                                         </span>

@@ -118,3 +118,19 @@ class AdminForm(FlaskForm):
     def validate_email(self, field):
         if User.query.filter_by(email=field.data).first():
             raise ValidationError('电子邮箱已被注册')
+
+
+class ForgotPasswordForm(FlaskForm):
+    student_id = StringField('学号', validators=[DataRequired(), Length(1, 20)])
+    name = StringField('姓名', validators=[DataRequired(), Length(1, 50)])
+    submit = SubmitField('重置密码')
+
+    def validate_student_id(self, field):
+        student = Student.query.filter_by(student_id=field.data).first()
+        if not student:
+            raise ValidationError('学号不存在')
+
+    def validate_name(self, field):
+        student = Student.query.filter_by(student_id=self.student_id.data).first()
+        if student and student.name != field.data:
+            raise ValidationError('学号与姓名不匹配')

@@ -2,7 +2,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request, abo
 from flask_wtf.csrf import generate_csrf, CSRFError, CSRFProtect
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, Student, Course, Grade, Department, Major
-from forms import LoginForm, RegistrationForm, StudentForm, CourseForm, GradeForm, DepartmentForm, AdminForm, PasswordForm
+from forms import LoginForm, RegistrationForm, StudentForm, CourseForm, GradeForm, DepartmentForm, AdminForm, PasswordForm, ForgotPasswordForm
 from course_selection_form import CourseSelectionForm
 from datetime import datetime, timedelta
 from sqlalchemy.orm import joinedload
@@ -98,6 +98,25 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    form = ForgotPasswordForm()
+    if form.validate_on_submit():
+        # 获取学生信息
+        student = Student.query.filter_by(student_id=form.student_id.data).first()
+        if student and student.name == form.name.data:
+            # 验证成功，重置密码为初始密码123456
+            if student.user:
+                student.user.set_password("123456")
+                db.session.commit()
+                flash('密码已重置为初始密码123456，请使用新密码登录')
+            else:
+                flash('账户信息异常，请联系管理员')
+        else:
+            flash('学号与姓名不匹配')
+        return redirect(url_for('login'))
+    return render_template('forgot_password.html', form=form)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
