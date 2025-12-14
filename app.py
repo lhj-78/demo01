@@ -711,6 +711,14 @@ def list_grades():
     
     # 合并列表，有成绩的学生在前
     students_data = students_with_grades + students_without_grades
+
+    # 为了确保排序更加明显，可以再按学生姓名排序
+    # 有成绩的学生按姓名排序
+    students_with_grades.sort(key=lambda x: x['student'].name)
+    # 没有成绩的学生也按姓名排序
+    students_without_grades.sort(key=lambda x: x['student'].name)
+    # 重新合并列表
+    students_data = students_with_grades + students_without_grades
     
     from forms import GradeForm
     form = GradeForm()
@@ -883,7 +891,22 @@ def profile():
         db.session.add(student)
         db.session.commit()
 
+    # 获取院系列表
+    departments = Department.query.all()
+    
+    # 创建表单并设置choices
     form = StudentForm(obj=student)
+    form.department_id.choices = [(0, '请选择院系')] + [(d.id, d.dept_name) for d in departments]
+    form.major_id.choices = [(0, '请选择专业')]
+    
+    # 如果学生已选择院系，则加载对应的专业
+    if student and student.dept_id:
+        majors = Major.query.filter_by(dept_id=student.dept_id).all()
+        if majors:
+            form.major_id.choices = [(0, '请选择专业')] + [(m.id, m.major_name) for m in majors]
+            if student.major_id:
+                form.major_id.data = student.major_id
+    
     if form.validate_on_submit():
         student.student_id = form.student_id.data
         student.name = form.name.data
@@ -891,8 +914,29 @@ def profile():
         student.birth_date = form.birth_date.data
         student.phone = form.phone.data
         student.address = form.address.data
+        
+        # 更新院系和专业
+        if form.department_id.data and form.department_id.data != 0:
+            student.dept_id = form.department_id.data
+        else:
+            student.dept_id = None
+            
+        if form.major_id.data and form.major_id.data != 0:
+            student.major_id = form.major_id.data
+        else:
+            student.major_id = None
+        
+        # 如果提供了新密码，更新密码
+        if form.password.data:
+            current_user.set_password(form.password.data)
+            flash('个人信息和密码已更新，请重新登录！')
+            db.session.commit()
+            logout_user()
+            return redirect(url_for('login'))
+        else:
+            flash('个人信息已更新')
+
         db.session.commit()
-        flash('个人信息已更新')
         return redirect(url_for('dashboard'))
 
     return render_template('profile.html', form=form, student=student)
@@ -917,7 +961,16 @@ def my_grades():
         flash('请先完善个人信息')
         return redirect(url_for('profile'))
 
-    grades = Grade.query.filter_by(student_id=student.id).all()
+    # 获取所有成绩记录
+    all_grades = Grade.query.filter_by(student_id=student.id).all()
+
+    # 分离有成绩和无成绩的课程
+    grades_with_score = [g for g in all_grades if g.score is not None]
+    grades_without_score = [g for g in all_grades if g.score is None]
+
+    # 合并列表，有成绩的在前
+    grades = grades_with_score + grades_without_score
+
     return render_template('my_grades.html', grades=grades)
 
 # 课程选择

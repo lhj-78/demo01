@@ -42,8 +42,8 @@ class StudentForm(FlaskForm):
     name = StringField('姓名', validators=[DataRequired(), Length(1, 50)])
     gender = SelectField('性别', choices=[('男', '男'), ('女', '女')], validators=[Optional()])
     # 添加院系和专业字段
-    department_id = SelectField('院系', coerce=int, validators=[Optional()])
-    major_id = SelectField('专业', coerce=int, validators=[Optional()])
+    department_id = SelectField('院系', coerce=int, validators=[Optional()], choices=[(0, '请选择院系')])
+    major_id = SelectField('专业', coerce=int, validators=[Optional()], choices=[(0, '请选择专业')])
     birth_date = DateField('出生日期', validators=[Optional()])
     phone = StringField('电话', validators=[Optional(), Length(max=20)])
     address = StringField('地址', validators=[Optional(), Length(max=200)])
