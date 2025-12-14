@@ -1,0 +1,149 @@
+
+{% extends "base.html" %}
+
+{% block title %}测试下拉框联动 - 学生信息管理系统{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('测试页面已加载');
+
+    const departmentSelect = document.getElementById('department_id');
+    const majorSelect = document.getElementById('major_id');
+
+    console.log('院系下拉框:', departmentSelect);
+    console.log('专业下拉框:', majorSelect);
+
+    if (!departmentSelect || !majorSelect) {
+        console.error('找不到院系或专业下拉框');
+        return;
+    }
+
+    // 加载专业列表的函数
+    function loadMajors(departmentId) {
+        console.log('加载专业列表，院系ID:', departmentId);
+
+        // 清空专业下拉框
+        majorSelect.innerHTML = '';
+
+        if (departmentId == 0) {
+            // 如果没有选择院系，显示提示信息
+            const option = document.createElement('option');
+            option.value = 0;
+            option.textContent = '请先选择院系';
+            majorSelect.appendChild(option);
+            return;
+        }
+
+        // 发送AJAX请求获取该院系下的专业
+        console.log('发送AJAX请求到:', `/api/majors/${departmentId}`);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', '/api/majors/' + departmentId, true);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                console.log('API响应状态:', xhr.status);
+                console.log('API响应文本:', xhr.responseText);
+
+                // 清空专业下拉框
+                majorSelect.innerHTML = '';
+
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        console.log('API返回的数据:', data);
+
+                        // 添加默认选项
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = 0;
+                        defaultOption.textContent = '请选择专业';
+                        majorSelect.appendChild(defaultOption);
+
+                        // 添加专业选项
+                        if (data && data.length > 0) {
+                            data.forEach(major => {
+                                const option = document.createElement('option');
+                                option.value = major.id;
+                                option.textContent = major.major_name;
+                                majorSelect.appendChild(option);
+                            });
+                        } else {
+                            console.log('没有专业数据');
+                            const noMajorOption = document.createElement('option');
+                            noMajorOption.value = 0;
+                            noMajorOption.textContent = '该院系暂无专业';
+                            majorSelect.appendChild(noMajorOption);
+                        }
+                    } catch (e) {
+                        console.error('JSON解析错误:', e);
+                        const option = document.createElement('option');
+                        option.value = 0;
+                        option.textContent = '数据解析失败';
+                        majorSelect.appendChild(option);
+                    }
+                } else {
+                    console.error('HTTP错误:', xhr.status);
+                    const option = document.createElement('option');
+                    option.value = 0;
+                    option.textContent = '获取专业列表失败';
+                    majorSelect.appendChild(option);
+                }
+            }
+        };
+        xhr.send();
+    }
+
+    // 当院系选择改变时，更新专业下拉框
+    departmentSelect.addEventListener('change', function() {
+        console.log('院系选择已改变:', this.value);
+        loadMajors(this.value);
+    });
+
+    // 页面加载时，自动选择第一个院系
+    if (departmentSelect.options.length > 1) {
+        console.log('自动选择第一个院系');
+        departmentSelect.selectedIndex = 1;
+        loadMajors(departmentSelect.value);
+    }
+
+    // 添加一个全局函数，以便在HTML中调用
+    window.loadMajors = loadMajors;
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">测试下拉框联动</h4>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="department_id" class="form-label">院系</label>
+                    <select class="form-select" id="department_id" name="department_id" onchange="loadMajors(this.value)">
+                        <option value="0">请选择院系</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.dept_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="major_id" class="form-label">专业</label>
+                    <select class="form-select" id="major_id" name="major_id" onchange="console.log('专业选择已改变:', this.value)">
+                        <option value="0">请先选择院系</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-primary" onclick="loadMajors(document.getElementById('department_id').value)">
+                        手动加载专业
+                    </button>
+                    <a href="/test_api_simple" class="btn btn-secondary">测试API</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

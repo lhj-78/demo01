@@ -4,7 +4,7 @@ from wtforms.validators import DataRequired, Length, Email, Regexp, EqualTo, Opt
 from models import User, Student, Course, Department, Grade
 
 class LoginForm(FlaskForm):
-    username = StringField('用户名', validators=[DataRequired(), Length(1, 64)])
+    username = StringField('用户名/学号', validators=[DataRequired(), Length(1, 64)])
     password = PasswordField('密码', validators=[DataRequired()])
     remember_me = BooleanField('记住我')
     submit = SubmitField('登录')
@@ -21,6 +21,11 @@ class RegistrationForm(FlaskForm):
     ])
     password2 = PasswordField('确认密码', validators=[
         DataRequired(), EqualTo('password', message='密码不匹配')])
+
+    # 添加院系和专业下拉框
+    department_id = SelectField('院系', coerce=int, validators=[DataRequired()])
+    major_id = SelectField('专业', coerce=int, validators=[Optional()])
+
     submit = SubmitField('注册')
 
     def validate_username(self, field):
@@ -32,12 +37,25 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('电子邮箱已被注册')
 
 class StudentForm(FlaskForm):
-    student_id = StringField('学号', validators=[DataRequired(), Length(1, 20)])
+    student_id = StringField('学号', validators=[Optional(), Length(1, 20)], 
+                            description="留空则自动生成")
     name = StringField('姓名', validators=[DataRequired(), Length(1, 50)])
     gender = SelectField('性别', choices=[('男', '男'), ('女', '女')], validators=[Optional()])
+    # 添加院系和专业字段
+    department_id = SelectField('院系', coerce=int, validators=[Optional()], choices=[(0, '请选择院系')])
+    major_id = SelectField('专业', coerce=int, validators=[Optional()], choices=[(0, '请选择专业')])
     birth_date = DateField('出生日期', validators=[Optional()])
     phone = StringField('电话', validators=[Optional(), Length(max=20)])
     address = StringField('地址', validators=[Optional(), Length(max=200)])
+    # 添加密码字段
+    password = PasswordField('密码', validators=[
+        Length(min=6, message='密码长度至少为6个字符'),
+        Optional()
+    ])
+    password2 = PasswordField('确认密码', validators=[
+        EqualTo('password', message='密码不匹配'),
+        Optional()
+    ])
     submit = SubmitField('提交')
 
 class CourseForm(FlaskForm):
@@ -45,7 +63,20 @@ class CourseForm(FlaskForm):
     course_name = StringField('课程名称', validators=[DataRequired(), Length(1, 100)])
     credit = FloatField('学分', validators=[DataRequired(), NumberRange(min=0.1, max=10.0)])
     description = TextAreaField('课程描述', validators=[Optional()])
+    # 添加专业选择字段
+    major_id = SelectField('所属专业', coerce=int, validators=[Optional()])
     submit = SubmitField('提交')
+
+class PasswordForm(FlaskForm):
+    password = PasswordField('新密码', validators=[
+        DataRequired(),
+        Length(min=6, message='密码长度至少为6个字符')
+    ])
+    password2 = PasswordField('确认密码', validators=[
+        DataRequired(),
+        EqualTo('password', message='密码不匹配')
+    ])
+    submit = SubmitField('修改密码')
 
 class GradeForm(FlaskForm):
     student_id = SelectField('学生', coerce=int, validators=[DataRequired()])
@@ -61,6 +92,17 @@ class DepartmentForm(FlaskForm):
     dean = StringField('院长', validators=[Optional(), Length(1, 50)])
     office_location = StringField('办公室位置', validators=[Optional(), Length(max=100)])
     phone = StringField('联系电话', validators=[Optional(), Length(max=20)])
+
+class MajorForm(FlaskForm):
+    major_code = StringField('专业代码', validators=[DataRequired(), Length(1, 20)])
+    major_name = StringField('专业名称', validators=[DataRequired(), Length(1, 100)])
+    dept_id = SelectField('所属院系', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('提交')
+
+class ForgotPasswordForm(FlaskForm):
+    student_id = StringField('学号', validators=[DataRequired(), Length(1, 20)])
+    name = StringField('姓名', validators=[DataRequired(), Length(1, 50)])
+    submit = SubmitField('重置密码')
 
 class AdminForm(FlaskForm):
     username = StringField('用户名', validators=[

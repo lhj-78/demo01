@@ -19,10 +19,16 @@ class User(UserMixin, db.Model):
     student_info = db.relationship('Student', backref='user', uselist=False)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        # 使用pbkdf2:sha256算法哈希密码
+        self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        try:
+            # 尝试使用常规方式验证密码
+            return check_password_hash(self.password_hash, password)
+        except ValueError:
+            # 如果遇到不支持的哈希格式，返回False
+            return False
 
     def __repr__(self):
         return f'<User {self.username}>'
@@ -39,6 +45,13 @@ class Student(db.Model):
     address = db.Column(db.String(200))
     enrollment_date = db.Column(db.Date, default=datetime.utcnow().date)
 
+    # 添加院系和专业字段
+    dept_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=True)
+    major_id = db.Column(db.Integer, db.ForeignKey('major.id'), nullable=True)
+
+    # 关联到院系
+    department = db.relationship('Department', backref='students', foreign_keys=[dept_id])
+
     # 关联到课程
     courses = db.relationship('Course', secondary='student_course', backref='students')
 
@@ -52,6 +65,11 @@ class Course(db.Model):
     course_name = db.Column(db.String(100), nullable=False)
     credit = db.Column(db.Float, nullable=False)
     description = db.Column(db.Text)
+    # 添加与专业的关联
+    major_id = db.Column(db.Integer, db.ForeignKey('major.id'), nullable=True)
+    
+    # 关联到专业
+    major = db.relationship('Major', backref='courses')
 
     def __repr__(self):
         return f'<Course {self.course_name}>'
@@ -69,7 +87,7 @@ class Grade(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
-    score = db.Column(db.Float, nullable=False)
+    score = db.Column(db.Float, nullable=True)
     exam_date = db.Column(db.Date, default=datetime.utcnow().date)
     semester = db.Column(db.String(20), nullable=False)
 
@@ -89,5 +107,21 @@ class Department(db.Model):
     office_location = db.Column(db.String(100))
     phone = db.Column(db.String(20))
 
+    # 关联到专业
+    majors = db.relationship('Major', backref='department', lazy=True)
+
     def __repr__(self):
         return f'<Department {self.dept_name}>'
+
+# 专业表
+class Major(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    major_code = db.Column(db.String(20), unique=True, nullable=False)
+    major_name = db.Column(db.String(100), nullable=False)
+    dept_id = db.Column(db.Integer, db.ForeignKey('department.id'), nullable=False)
+
+    # 关联到学生
+    students = db.relationship('Student', backref='major', lazy=True)
+
+    def __repr__(self):
+        return f'<Major {self.major_name}>'

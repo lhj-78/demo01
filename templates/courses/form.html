@@ -57,6 +57,17 @@
                             </div>
                         {% endif %}
                     </div>
+                    <div class="mb-3">
+                        {{ form.major_id.label(class="form-label") }}
+                        {{ form.major_id(class="form-select") }}
+                        {% if form.major_id.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.major_id.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
                     <div class="d-grid gap-2">
                         {{ form.submit(class="btn btn-primary") }}
                         <a href="{{ url_for('list_courses') }}" class="btn btn-outline-secondary">返回列表</a>
